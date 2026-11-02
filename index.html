@@ -12,6 +12,8 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 #quote{position:fixed;left:16px;right:16px;top:100px;text-align:center;font-size:14px;letter-spacing:3px;color:#ffb000;pointer-events:none;opacity:0;transition:opacity .9s;text-shadow:0 0 8px rgba(255,176,0,.7);font-style:italic}
 #flash{position:fixed;left:0;right:0;top:64px;text-align:center;font-size:18px;letter-spacing:6px;pointer-events:none;opacity:0;transition:opacity .25s;text-shadow:0 0 10px currentColor}
 #mbtn{background:transparent;border:1px solid #119944;color:#33ff77;font-family:"Courier New",monospace;font-size:11px;letter-spacing:2px;padding:3px 9px;cursor:pointer;border-radius:2px}
+#lbtn{background:transparent;border:1px solid #119944;color:#33ff77;font-family:"Courier New",monospace;font-size:11px;letter-spacing:2px;padding:3px 9px;cursor:pointer;border-radius:2px;margin-left:6px}
+#lbtn:hover{border-color:#33ff77;text-shadow:0 0 6px #33ff77}
 #mbtn:hover{border-color:#33ff77;text-shadow:0 0 6px #33ff77}
 #mbtn.off{color:#ff4455;border-color:#ff4455;text-shadow:0 0 6px #ff4455}
 #modesel{position:fixed;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(2,8,4,.9);z-index:50}
@@ -27,7 +29,7 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 #mC{border-color:#ffb000;color:#ffb000}
 #mC:hover{background:rgba(255,176,0,.08);text-shadow:0 0 8px #ffb000}
 </style></head><body>
-<div id="hud"><span style="color:#ff4455;text-shadow:0 0 8px #ff4455">HELLBALL <span style="color:#119944;text-shadow:none" id="np"></span></span><button id="mbtn" title="M">MUSIC: ON</button><span id="s"></span></div>
+<div id="hud"><span style="color:#ff4455;text-shadow:0 0 8px #ff4455">HELLBALL <span style="color:#119944;text-shadow:none" id="np"></span></span><button id="mbtn" title="M">MUSIC: ON</button><button id="lbtn" title="load your own music">MY MUSIC</button><input id="lfile" type="file" accept="audio/*" multiple hidden><span id="s"></span></div>
 <canvas id="c"></canvas><div id="msg"></div><div id="flash"></div><div id="quote"></div>
 <div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mT" class="mBtn">TEST MODE<small>hold left-click to catch &amp; throw &middot; shift for corkscrew</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button></div>
 <script src="discord-sdk.js"></script>
@@ -76,6 +78,37 @@ const SECRET={name:"HAPPYMEAT",bpm:152,scale:MAJOR,key:62,prog:[[62,"M"],[57,"M"
   lens:[16,16,16,14,16,16,14,16],kick:"x.x.x.x.x.x.x.x.",snare:"....x.......x...",hat:".x.x.x.x.x.x.x.x",bass:"0c0c0c0c0c0c0c0c",arp:"0120120120120120",lead:"bright",seed:7,dens:.6,happy:1};
 const MU={out:null,del:null,rev:null,noise:null,timer:0,next:0,si:Math.floor(Math.random()*3),secret:false,bar:0,s:0,mel:null,bright:0,warp:0};
 const SONG=()=>MU.secret?SECRET:SONGS[MU.si],SD=()=>60/SONG().bpm/4;
+/* ---------- YOUR OWN MUSIC ----------
+   Put audio files (mp3/ogg/wav) in a "music" folder next to this page and list them here, e.g.
+     {name:"My Song",file:"music/my-song.mp3"}
+   If this list is empty the built-in synth soundtrack plays. The MY MUSIC button also loads files from your computer (this session only). */
+const TRACKS=[
+  // {name:"MY SONG",file:"music/my-song.mp3"},
+];
+const CUSTOM=()=>TRACKS.length>0&&!MU.secret;
+let ci=Math.floor(Math.random()*Math.max(1,TRACKS.length)),ca=null,cg=null,cOn=false;
+function cInit(){
+  if(ca)return true;
+  try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return false}
+  ca=new Audio();ca.preload="auto";ca.crossOrigin="anonymous";
+  cg=AC.createGain();cg.gain.value=0;AC.createMediaElementSource(ca).connect(cg);cg.connect(AC.destination);
+  ca.addEventListener("ended",()=>{if(cOn)nextSong()});
+  ca.addEventListener("error",()=>{if(cOn&&TRACKS.length>1){ci=(ci+1)%TRACKS.length;cLoad()}});
+  return true}
+function cLoad(){if(!ca||!TRACKS.length)return;ca.src=TRACKS[ci].file;ca.load();if(cOn)ca.play().catch(()=>{});np()}
+function customStart(){
+  if(!cInit())return;if(AC.state==="suspended")AC.resume();
+  if(!ca.src)cLoad();cOn=true;ca.play().catch(()=>{});
+  const n=AC.currentTime;cg.gain.cancelScheduledValues(n);cg.gain.setValueAtTime(cg.gain.value,n);cg.gain.linearRampToValueAtTime(.7,n+1);np()}
+function customStop(){
+  if(!cOn||!ca)return;cOn=false;const n=AC.currentTime;cg.gain.cancelScheduledValues(n);cg.gain.setValueAtTime(cg.gain.value,n);cg.gain.linearRampToValueAtTime(0,n+.4);
+  setTimeout(()=>{if(!cOn)ca.pause()},450)}
+document.getElementById("lbtn").addEventListener("click",()=>document.getElementById("lfile").click());
+document.getElementById("lfile").addEventListener("change",e=>{
+  const fs=[...e.target.files].filter(f=>f.type.startsWith("audio/")||/\.(mp3|ogg|wav|flac|m4a|aac|opus)$/i.test(f.name));if(!fs.length)return;
+  const first=TRACKS.length;fs.forEach(f=>TRACKS.push({name:f.name.replace(/\.[^.]+$/,"").toUpperCase(),file:URL.createObjectURL(f)}));
+  musicOn=true;try{localStorage.setItem("cb_music","on")}catch(_){}
+  MU.timer&&musicStop();ci=first;if(ca)ca.src="";cOn=false;mbtnSync();musicStart();cLoad();flash("LOADED "+fs.length+" TRACK"+(fs.length>1?"S":""),"#33d6ff");e.target.value=""});
 function musicInit(){
   if(MU.out)return true;
   try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return false}
@@ -126,11 +159,14 @@ function melody(S){                                                  // original
   const A=mk(),B=mk(),C=mk();
   for(let b=0;b<nb;b++){const half=b>=nb/2,mo=b%2===0?A:(half&&b===nb-1?C:B);if(b===nb/2)deg=7;out.push(bar(b,mo))}
   return out}
-function nextSong(silent){if(!MU.secret)MU.si=(MU.si+1)%SONGS.length;MU.mel=null;MU.bar=0;MU.s=0;
+function nextSong(silent){
+  if(CUSTOM()){ci=(ci+1)%TRACKS.length;cLoad();np();if(!silent&&cOn)flash("NOW PLAYING: "+TRACKS[ci].name,"#33d6ff");return}
+  if(!MU.secret)MU.si=(MU.si+1)%SONGS.length;MU.mel=null;MU.bar=0;MU.s=0;
   if(MU.del&&AC)MU.del.delayTime.setValueAtTime(SD()*3,AC.currentTime);np();if(!silent&&MU.timer)flash("NOW PLAYING: "+SONG().name,"#33d6ff")}
-function np(){const e=document.getElementById("np");if(e)e.textContent=musicOn?"// ♪ "+SONG().name:""}
+function np(){const e=document.getElementById("np");if(e)e.textContent=musicOn?"// ♪ "+(CUSTOM()?TRACKS[ci].name:SONG().name):""}
 function unlockSecret(){MU.secret=true;MU.mel=null;MU.bar=0;MU.s=0;flash("SECRET TRACK UNLOCKED: HAPPYMEAT","#ff66cc");
   if(!musicOn){musicOn=true;try{localStorage.setItem("cb_music","on")}catch(_){}}
+  customStop();
   if(MU.del&&AC)MU.del.delayTime.setValueAtTime(SD()*3,AC.currentTime);musicStart();np()}
 function tick(t){
   const S=SONG(),L=lvl(),all=!!S.happy,bl=S.lens?S.lens[MU.bar%S.lens.length]:16,s=MU.s,[root,q]=S.prog[MU.bar%S.prog.length],
@@ -146,13 +182,14 @@ function tick(t){
   if(L>=5||all){if(!MU.mel)MU.mel=melody(S);for(const n of MU.mel[MU.bar%MU.mel.length])if(n.s===s)vLead(n.n,t,n.len*sd,S.lead)}
   MU.s++;if(MU.s>=bl){MU.s=0;MU.bar++;if(!MU.secret&&MU.bar>=32)nextSong()}}
 function musicStart(){
-  if(!musicOn||MU.timer||!musicInit())return;
+  if(!musicOn)return;if(CUSTOM()){if(MU.timer)musicStop();customStart();return}
+  if(MU.timer||!musicInit())return;
   if(AC.state==="suspended")AC.resume();
   const n=AC.currentTime;MU.out.gain.cancelScheduledValues(n);MU.out.gain.setValueAtTime(MU.out.gain.value,n);MU.out.gain.linearRampToValueAtTime(.5,n+1.5);
   MU.next=n+.12;np();
   MU.timer=setInterval(()=>{if(!AC)return;while(MU.next<AC.currentTime+.2){tick(MU.next);MU.next+=SD()}},30)}
 function musicStop(){
-  if(!MU.timer)return;clearInterval(MU.timer);MU.timer=0;np();
+  customStop();if(!MU.timer)return;clearInterval(MU.timer);MU.timer=0;np();
   const n=AC.currentTime;MU.out.gain.cancelScheduledValues(n);MU.out.gain.setValueAtTime(MU.out.gain.value,n);MU.out.gain.linearRampToValueAtTime(0,n+.6)}
 document.addEventListener("visibilitychange",()=>{if(!AC)return;if(document.hidden)AC.suspend();else AC.resume()});
 function toggleMusic(){musicOn=!musicOn;try{localStorage.setItem("cb_music",musicOn?"on":"off")}catch(_){}
@@ -459,7 +496,7 @@ function afterPoint(){
   extraScored=0;psyEvent(ace?"ace":"point");hud();toServe()}
 function afterMiss(){
   st.lives--;psyEvent(st.lives<=0?"over":"miss");tn(130,.4,"sawtooth",.07,60);pulse("rgba(255,68,85,.45)");hud();
-  if(st.lives<=0){st.state="over";const lv=st.level;st.level=0;reset();syncField();balls=[];extraScored=0;breach=null;gefGlitches=[];stamina=1;if(MU.secret){MU.secret=false;nextSong()}show("GAME OVER","REACHED LEVEL "+(1+lv)+"   FINAL SCORE "+st.score+" - CLICK TO RESTART")}
+  if(st.lives<=0){st.state="over";const lv=st.level;st.level=0;reset();syncField();balls=[];extraScored=0;breach=null;gefGlitches=[];stamina=1;if(MU.secret){MU.secret=false;MU.mel=null;MU.bar=0;MU.s=0;np();musicStart()}show("GAME OVER","REACHED LEVEL "+(1+lv)+"   FINAL SCORE "+st.score+" - CLICK TO RESTART")}
   else{flash("MISSED   "+st.lives+(st.lives===1?" LIFE":" LIVES")+" LEFT  -  MULTIBALL CONTINUES","#ff4455");if(MODE!=="classic"&&Math.random()<.5)quote(pickQ(MISSQ,"m"));toServe()}}
 function step(dt){
   st.clock+=dt;
