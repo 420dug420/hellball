@@ -13,6 +13,8 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 #flash{position:fixed;left:0;right:0;top:64px;text-align:center;font-size:18px;letter-spacing:6px;pointer-events:none;opacity:0;transition:opacity .25s;text-shadow:0 0 10px currentColor}
 #mbtn{background:transparent;border:1px solid #119944;color:#33ff77;font-family:"Courier New",monospace;font-size:11px;letter-spacing:2px;padding:3px 9px;cursor:pointer;border-radius:2px}
 #lbtn{background:transparent;border:1px solid #119944;color:#33ff77;font-family:"Courier New",monospace;font-size:11px;letter-spacing:2px;padding:3px 9px;cursor:pointer;border-radius:2px;margin-left:6px}
+#fbtn{background:transparent;border:1px solid #119944;color:#33ff77;font-family:"Courier New",monospace;font-size:11px;letter-spacing:2px;padding:3px 9px;cursor:pointer;border-radius:2px;margin-left:6px}
+#fbtn.on{color:#ffb000;border-color:#ffb000;text-shadow:0 0 6px #ffb000}
 #lbtn:hover{border-color:#33ff77;text-shadow:0 0 6px #33ff77}
 #mbtn:hover{border-color:#33ff77;text-shadow:0 0 6px #33ff77}
 #mbtn.off{color:#ff4455;border-color:#ff4455;text-shadow:0 0 6px #ff4455}
@@ -29,7 +31,7 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 #mC{border-color:#ffb000;color:#ffb000}
 #mC:hover{background:rgba(255,176,0,.08);text-shadow:0 0 8px #ffb000}
 </style></head><body>
-<div id="hud"><span style="color:#ff4455;text-shadow:0 0 8px #ff4455">HELLBALL <span style="color:#119944;text-shadow:none" id="np"></span></span><button id="mbtn" title="M">MUSIC: ON</button><button id="lbtn" title="load your own music">MY MUSIC</button><input id="lfile" type="file" accept="audio/*" multiple hidden><span id="s"></span></div>
+<div id="hud"><span style="color:#ff4455;text-shadow:0 0 8px #ff4455">HELLBALL <span style="color:#119944;text-shadow:none" id="np"></span></span><button id="mbtn" title="M">MUSIC: ON</button><button id="lbtn" title="load your own music">MY MUSIC</button><button id="fbtn" title="force your songs to play (testing)">SONGS: AUTO</button><input id="lfile" type="file" accept="audio/*" multiple hidden><span id="s"></span></div>
 <canvas id="c"></canvas><div id="msg"></div><div id="flash"></div><div id="quote"></div>
 <div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mT" class="mBtn">TEST MODE<small>hold left-click to catch &amp; throw &middot; shift for corkscrew</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button></div>
 <script src="discord-sdk.js"></script>
@@ -83,20 +85,28 @@ const SONG=()=>MU.secret?SECRET:SONGS[MU.si],SD=()=>60/SONG().bpm/4;
      {name:"My Song",file:"music/my-song.mp3"}
    If this list is empty the built-in synth soundtrack plays. The MY MUSIC button also loads files from your computer (this session only). */
 const TRACKS=[
-  {name:"LIGHT",file:"music/light.ogg"},
-  {name:"SEWNT",file:"music/sewnt.ogg"},
-  {name:"VON",file:"music/von.ogg"},
+  // {name:"MY SONG",file:"music/my-song.mp3"},
 ];
-const CUSTOM=()=>TRACKS.length>0&&!MU.secret;
+const SONG_FROM_LEVEL=15,RARE=.12;           // the synth is the normal soundtrack; from level 16 on, your songs get a RARE (12%) chance at each song change
+let cMode=false,cForce=false;                  // cMode: custom songs are the current music; cForce: the SONGS button, always your songs (testing)
+const pickCustom=()=>cForce||(st.level>=SONG_FROM_LEVEL&&Math.random()<RARE);
+const CUSTOM=()=>TRACKS.length>0&&!MU.secret&&cMode;
 let ci=Math.floor(Math.random()*Math.max(1,TRACKS.length)),ca=null,cg=null,cOn=false;
 function cInit(){
   if(ca)return true;
   try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return false}
   ca=new Audio();ca.preload="auto";ca.crossOrigin="anonymous";
   cg=AC.createGain();cg.gain.value=0;AC.createMediaElementSource(ca).connect(cg);cg.connect(AC.destination);
-  ca.addEventListener("ended",()=>{if(cOn)nextSong()});
+  ca.addEventListener("ended",()=>{if(cOn)cAdvance()});
   ca.addEventListener("error",()=>{if(cOn&&TRACKS.length>1){ci=(ci+1)%TRACKS.length;cLoad()}});
   return true}
+function cAdvance(){                                                // a track finished: pick what plays next
+  ci=(ci+1)%TRACKS.length;if(pickCustom())cLoad();else{cMode=false;musicStop();musicStart()}}
+function cSwitch(toCustom){cMode=toCustom;musicStop();musicStart()}
+function fbtnSync(){const b=document.getElementById("fbtn");b.textContent="SONGS: "+(cForce?"FORCED":"AUTO");b.classList.toggle("on",cForce)}
+document.getElementById("fbtn").addEventListener("click",()=>{cForce=!cForce;fbtnSync();if(!TRACKS.length){flash("NO SONGS LOADED","#ff4455");return}
+  musicOn=true;try{localStorage.setItem("cb_music","on")}catch(_){}mbtnSync();
+  if(cForce){cSwitch(true);flash("YOUR SONGS FORCED","#ffb000")}else{if(st.level<SONG_FROM_LEVEL&&cMode)cSwitch(false);flash("SONGS: AUTO (RARE AFTER LEVEL "+SONG_FROM_LEVEL+")","#ffb000")}});
 function cLoad(){if(!ca||!TRACKS.length)return;ca.src=TRACKS[ci].file;ca.load();if(cOn)ca.play().catch(()=>{});np()}
 function customStart(){
   if(!cInit())return;if(AC.state==="suspended")AC.resume();
@@ -109,7 +119,7 @@ document.getElementById("lbtn").addEventListener("click",()=>document.getElement
 document.getElementById("lfile").addEventListener("change",e=>{
   const fs=[...e.target.files].filter(f=>f.type.startsWith("audio/")||/\.(mp3|ogg|wav|flac|m4a|aac|opus)$/i.test(f.name));if(!fs.length)return;
   const first=TRACKS.length;fs.forEach(f=>TRACKS.push({name:f.name.replace(/\.[^.]+$/,"").toUpperCase(),file:URL.createObjectURL(f)}));
-  musicOn=true;try{localStorage.setItem("cb_music","on")}catch(_){}
+  musicOn=true;cMode=true;try{localStorage.setItem("cb_music","on")}catch(_){}
   MU.timer&&musicStop();ci=first;if(ca)ca.src="";cOn=false;mbtnSync();musicStart();cLoad();flash("LOADED "+fs.length+" TRACK"+(fs.length>1?"S":""),"#33d6ff");e.target.value=""});
 function musicInit(){
   if(MU.out)return true;
@@ -182,7 +192,7 @@ function tick(t){
   if(s===0)vPad(tones,t,sd*bl);
   if((L>=3||all)&&ar!==".")vArp(tones[+ar]+12,t,all);
   if(L>=5||all){if(!MU.mel)MU.mel=melody(S);for(const n of MU.mel[MU.bar%MU.mel.length])if(n.s===s)vLead(n.n,t,n.len*sd,S.lead)}
-  MU.s++;if(MU.s>=bl){MU.s=0;MU.bar++;if(!MU.secret&&MU.bar>=32)nextSong()}}
+  MU.s++;if(MU.s>=bl){MU.s=0;MU.bar++;if(!MU.secret&&MU.bar>=32){nextSong();if(TRACKS.length&&pickCustom())setTimeout(()=>cSwitch(true),0)}}}
 function musicStart(){
   if(!musicOn)return;if(CUSTOM()){if(MU.timer)musicStop();customStart();return}
   if(MU.timer||!musicInit())return;
@@ -498,7 +508,7 @@ function afterPoint(){
   extraScored=0;psyEvent(ace?"ace":"point");hud();toServe()}
 function afterMiss(){
   st.lives--;psyEvent(st.lives<=0?"over":"miss");tn(130,.4,"sawtooth",.07,60);pulse("rgba(255,68,85,.45)");hud();
-  if(st.lives<=0){st.state="over";const lv=st.level;st.level=0;reset();syncField();balls=[];extraScored=0;breach=null;gefGlitches=[];stamina=1;if(MU.secret){MU.secret=false;MU.mel=null;MU.bar=0;MU.s=0;np();musicStart()}show("GAME OVER","REACHED LEVEL "+(1+lv)+"   FINAL SCORE "+st.score+" - CLICK TO RESTART")}
+  if(st.lives<=0){st.state="over";const lv=st.level;st.level=0;reset();syncField();balls=[];extraScored=0;breach=null;gefGlitches=[];stamina=1;if(MU.secret){MU.secret=false;MU.mel=null;MU.bar=0;MU.s=0;np();musicStop();musicStart()}else if(cMode&&!cForce){cSwitch(false)}show("GAME OVER","REACHED LEVEL "+(1+lv)+"   FINAL SCORE "+st.score+" - CLICK TO RESTART")}
   else{flash("MISSED   "+st.lives+(st.lives===1?" LIFE":" LIVES")+" LEFT  -  MULTIBALL CONTINUES","#ff4455");if(MODE!=="classic"&&Math.random()<.5)quote(pickQ(MISSQ,"m"));toServe()}}
 function step(dt){
   st.clock+=dt;
