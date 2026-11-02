@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -30,6 +31,15 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 <div id="hud"><span style="color:#ff4455;text-shadow:0 0 8px #ff4455">HELLBALL <span style="color:#119944;text-shadow:none" id="np"></span></span><button id="mbtn" title="M">MUSIC: ON</button><span id="s"></span></div>
 <canvas id="c"></canvas><div id="msg"></div><div id="flash"></div><div id="quote"></div>
 <div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mT" class="mBtn">TEST MODE<small>hold left-click to catch &amp; throw &middot; shift for corkscrew</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button></div>
+<script src="discord-sdk.js"></script>
+<script>
+/* Discord Activity handshake: only runs inside Discord (the iframe URL carries frame_id). App ID comes from <app-id>.discordsays.com */
+(async()=>{try{
+  if(!/[?&]frame_id=/.test(location.search)||!window.DiscordSDK)return;
+  const id=location.hostname.split(".")[0];
+  const sdk=new DiscordSDK(id);await sdk.ready();
+}catch(e){console.warn("Discord SDK:",e)}})();
+</script>
 <script>
 const cv=document.getElementById("c"),ctx=cv.getContext("2d"),msg=document.getElementById("msg"),fl=document.getElementById("flash");
 let W,H,A,cx,cy;const ASP=4/3;                                // the tunnel is 4:3, like the original
