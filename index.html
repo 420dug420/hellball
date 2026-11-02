@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -32,14 +31,6 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 <canvas id="c"></canvas><div id="msg"></div><div id="flash"></div><div id="quote"></div>
 <div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mT" class="mBtn">TEST MODE<small>hold left-click to catch &amp; throw &middot; shift for corkscrew</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button></div>
 <script src="discord-sdk.js"></script>
-<script>
-/* Discord Activity handshake: only runs inside Discord (the iframe URL carries frame_id). App ID comes from <app-id>.discordsays.com */
-(async()=>{try{
-  if(!/[?&]frame_id=/.test(location.search)||!window.DiscordSDK)return;
-  const id=location.hostname.split(".")[0];
-  const sdk=new DiscordSDK(id);await sdk.ready();
-}catch(e){console.warn("Discord SDK:",e)}})();
-</script>
 <script>
 const cv=document.getElementById("c"),ctx=cv.getContext("2d"),msg=document.getElementById("msg"),fl=document.getElementById("flash");
 let W,H,A,cx,cy;const ASP=4/3;                                // the tunnel is 4:3, like the original
@@ -949,7 +940,17 @@ function drawStamina(t){                                          // TEST MODE: 
   ctx.fillText("STAMINA "+Math.round(stamina*100)+(ball.caught?"  //  CAUGHT - RELEASE TO THROW":held&&stamina>.05?"  //  CATCH READY":"")+(shiftHeld?"  //  CORKSCREW ARMED":""),x+w/2,y+h+11);
   ctx.restore()}
 let last=performance.now(),frameAll=0;
-function frame(t){frameAll++;const dt=Math.min(0.033,(t-last)/1000)||0.016;last=t;step(dt);draw(t/1000,dt);requestAnimationFrame(frame)}
+let errCount=0;
+function frame(t){
+  requestAnimationFrame(frame);                                  // always reschedule first: one bad frame must never kill the loop
+  frameAll++;let dt=(t-last)/1000;last=t;if(!(dt>0))dt=0.016;dt=Math.min(0.033,dt);   // never negative / NaN after tab-away
+  ctx.save();
+  try{step(dt);draw(t/1000,dt)}
+  catch(e){errCount++;if(errCount<4)console.warn("HELLBALL frame error",e);
+    try{if(![ball.x,ball.y,ball.z,ball.vx,ball.vy,ball.vz,pad.x,pad.y].every(Number.isFinite)){pad.x=pad.tx=pad.y=pad.ty=0;toServe()}}catch(_){}}
+  finally{ctx.restore();ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";ctx.shadowBlur=0;ctx.setLineDash&&ctx.setLineDash([])}}
+document.addEventListener("visibilitychange",()=>{last=performance.now()});
+addEventListener("focus",()=>{last=performance.now()});
 reset();hud();
 requestAnimationFrame(frame);
 </script></body></html>
