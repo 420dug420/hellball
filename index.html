@@ -12,10 +12,8 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 #quote{position:fixed;left:16px;right:16px;top:100px;text-align:center;font-size:14px;letter-spacing:3px;color:#ffb000;pointer-events:none;opacity:0;transition:opacity .9s;text-shadow:0 0 8px rgba(255,176,0,.7);font-style:italic}
 #flash{position:fixed;left:0;right:0;top:64px;text-align:center;font-size:18px;letter-spacing:6px;pointer-events:none;opacity:0;transition:opacity .25s;text-shadow:0 0 10px currentColor}
 #mbtn{background:transparent;border:1px solid #119944;color:#33ff77;font-family:"Courier New",monospace;font-size:11px;letter-spacing:2px;padding:3px 9px;cursor:pointer;border-radius:2px}
-#lbtn{background:transparent;border:1px solid #119944;color:#33ff77;font-family:"Courier New",monospace;font-size:11px;letter-spacing:2px;padding:3px 9px;cursor:pointer;border-radius:2px;margin-left:6px}
 #fbtn{background:transparent;border:1px solid #119944;color:#33ff77;font-family:"Courier New",monospace;font-size:11px;letter-spacing:2px;padding:3px 9px;cursor:pointer;border-radius:2px;margin-left:6px}
 #fbtn.on{color:#ffb000;border-color:#ffb000;text-shadow:0 0 6px #ffb000}
-#lbtn:hover{border-color:#33ff77;text-shadow:0 0 6px #33ff77}
 #mbtn:hover{border-color:#33ff77;text-shadow:0 0 6px #33ff77}
 #mbtn.off{color:#ff4455;border-color:#ff4455;text-shadow:0 0 6px #ff4455}
 #modesel{position:fixed;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(2,8,4,.9);z-index:50}
@@ -31,7 +29,7 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 #mC{border-color:#ffb000;color:#ffb000}
 #mC:hover{background:rgba(255,176,0,.08);text-shadow:0 0 8px #ffb000}
 </style></head><body>
-<div id="hud"><span style="color:#ff4455;text-shadow:0 0 8px #ff4455">HELLBALL <span style="color:#119944;text-shadow:none" id="np"></span></span><button id="mbtn" title="M">MUSIC: ON</button><button id="lbtn" title="load your own music">MY MUSIC</button><button id="fbtn" title="force your songs to play (testing)">SONGS: AUTO</button><input id="lfile" type="file" accept="audio/*" multiple hidden><span id="s"></span></div>
+<div id="hud"><span style="color:#ff4455;text-shadow:0 0 8px #ff4455">HELLBALL <span style="color:#119944;text-shadow:none" id="np"></span></span><button id="mbtn" title="M">MUSIC: ON</button><button id="fbtn" title="force your songs to play (testing)">SONGS: AUTO</button><span id="s"></span></div>
 <canvas id="c"></canvas><div id="msg"></div><div id="flash"></div><div id="quote"></div>
 <div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mT" class="mBtn">TEST MODE<small>hold left-click to catch &amp; throw &middot; shift for corkscrew</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button></div>
 <script src="discord-sdk.js"></script>
@@ -83,9 +81,11 @@ const SONG=()=>MU.secret?SECRET:SONGS[MU.si],SD=()=>60/SONG().bpm/4;
 /* ---------- YOUR OWN MUSIC ----------
    Put audio files (mp3/ogg/wav) in a "music" folder next to this page and list them here, e.g.
      {name:"My Song",file:"music/my-song.mp3"}
-   If this list is empty the built-in synth soundtrack plays. The MY MUSIC button also loads files from your computer (this session only). */
+   If this list is empty the built-in synth soundtrack plays. */
 const TRACKS=[
-  // {name:"MY SONG",file:"music/my-song.mp3"},
+  {name:"LIGHT",file:"music/light.ogg"},
+  {name:"SEWNT",file:"music/sewnt.ogg"},
+  {name:"VON",file:"music/von.ogg"},
 ];
 const SONG_FROM_LEVEL=15,RARE=.12;           // the synth is the normal soundtrack; from level 16 on, your songs get a RARE (12%) chance at each song change
 let cMode=false,cForce=false;                  // cMode: custom songs are the current music; cForce: the SONGS button, always your songs (testing)
@@ -115,12 +115,7 @@ function customStart(){
 function customStop(){
   if(!cOn||!ca)return;cOn=false;const n=AC.currentTime;cg.gain.cancelScheduledValues(n);cg.gain.setValueAtTime(cg.gain.value,n);cg.gain.linearRampToValueAtTime(0,n+.4);
   setTimeout(()=>{if(!cOn)ca.pause()},450)}
-document.getElementById("lbtn").addEventListener("click",()=>document.getElementById("lfile").click());
-document.getElementById("lfile").addEventListener("change",e=>{
-  const fs=[...e.target.files].filter(f=>f.type.startsWith("audio/")||/\.(mp3|ogg|wav|flac|m4a|aac|opus)$/i.test(f.name));if(!fs.length)return;
-  const first=TRACKS.length;fs.forEach(f=>TRACKS.push({name:f.name.replace(/\.[^.]+$/,"").toUpperCase(),file:URL.createObjectURL(f)}));
-  musicOn=true;cMode=true;try{localStorage.setItem("cb_music","on")}catch(_){}
-  MU.timer&&musicStop();ci=first;if(ca)ca.src="";cOn=false;mbtnSync();musicStart();cLoad();flash("LOADED "+fs.length+" TRACK"+(fs.length>1?"S":""),"#33d6ff");e.target.value=""});
+
 function musicInit(){
   if(MU.out)return true;
   try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return false}
