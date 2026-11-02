@@ -87,16 +87,31 @@ const TRACKS=[
   {name:"SEWNT",file:"music/sewnt.ogg"},
   {name:"VON",file:"music/von.ogg"},
 ];
-const SONG_FROM_LEVEL=15,RARE=.12;           // the synth is the normal soundtrack; from level 16 on, your songs get a RARE (12%) chance at each song change
+const SONG_FROM_LEVEL=15,RARE0=.30,RARE_STEP=.05,RARE_MAX=.80,SONG_VOL=.3;   // synth is the normal soundtrack; from level 16 your songs get a 30% chance at each song change, +5% per level, up to 80%
 let cMode=false,cForce=false;                  // cMode: custom songs are the current music; cForce: the SONGS button, always your songs (testing)
-const pickCustom=()=>cForce||(st.level>=SONG_FROM_LEVEL&&Math.random()<RARE);
+const rareChance=()=>st.level<SONG_FROM_LEVEL?0:Math.min(RARE_MAX,RARE0+RARE_STEP*(st.level-SONG_FROM_LEVEL));   // level 16 = 30%, 17 = 35% ... 26+ = 80%
+const pickCustom=()=>cForce||Math.random()<rareChance();
 const CUSTOM=()=>TRACKS.length>0&&!MU.secret&&cMode;
-let ci=Math.floor(Math.random()*Math.max(1,TRACKS.length)),ca=null,cg=null,cOn=false;
+let ci=Math.floor(Math.random()*Math.max(1,TRACKS.length)),ca=null,cg=null,csrc=null,cOn=false;
+/* ---------- audio analysis: visual beat matching + the level 16+ visualizer ---------- */
+let an=null,FD=null;const MB={v:0,avg:0,last:0},KQ=[];             // MB.v = beat pulse (1 on a beat, fades out); KQ = scheduled synth kick times
+function anLink(){
+  if(!AC)return;
+  if(!an){an=AC.createAnalyser();an.fftSize=512;an.smoothingTimeConstant=.4;an.minDecibels=-85;an.maxDecibels=-20;FD=new Uint8Array(an.frequencyBinCount)}
+  if(MU.out&&!an._m){MU.out.connect(an);an._m=1}
+  if(csrc&&!an._c){csrc.connect(an);an._c=1}}                       // tapped before the volume control, so quiet songs still move the bars
+function audioFrame(t,dt){
+  MB.v=Math.max(0,MB.v-dt*5);
+  if(!MU.timer)KQ.length=0;
+  else if(AC)while(KQ.length&&KQ[0]<=AC.currentTime){KQ.shift();MB.v=1}   // synth: the kick drum schedule is the beat
+  if(an&&AC.state==="running"){an.getByteFrequencyData(FD);
+    if(cOn){let e=0;for(let i=1;i<=5;i++)e+=FD[i];e/=5*255;           // your songs: bass-energy onset detection
+      MB.avg=MB.avg*.94+e*.06;if(e>MB.avg*1.2&&e>.22&&t-MB.last>.17){MB.v=1;MB.last=t}}}}
 function cInit(){
   if(ca)return true;
   try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return false}
   ca=new Audio();ca.preload="auto";ca.crossOrigin="anonymous";
-  cg=AC.createGain();cg.gain.value=0;AC.createMediaElementSource(ca).connect(cg);cg.connect(AC.destination);
+  cg=AC.createGain();cg.gain.value=0;csrc=AC.createMediaElementSource(ca);csrc.connect(cg);cg.connect(AC.destination);anLink();
   ca.addEventListener("ended",()=>{if(cOn)cAdvance()});
   ca.addEventListener("error",()=>{if(cOn&&TRACKS.length>1){ci=(ci+1)%TRACKS.length;cLoad()}});
   return true}
@@ -111,7 +126,7 @@ function cLoad(){if(!ca||!TRACKS.length)return;ca.src=TRACKS[ci].file;ca.load();
 function customStart(){
   if(!cInit())return;if(AC.state==="suspended")AC.resume();
   if(!ca.src)cLoad();cOn=true;ca.play().catch(()=>{});
-  const n=AC.currentTime;cg.gain.cancelScheduledValues(n);cg.gain.setValueAtTime(cg.gain.value,n);cg.gain.linearRampToValueAtTime(.7,n+1);np()}
+  const n=AC.currentTime;cg.gain.cancelScheduledValues(n);cg.gain.setValueAtTime(cg.gain.value,n);cg.gain.linearRampToValueAtTime(SONG_VOL,n+1);np()}
 function customStop(){
   if(!cOn||!ca)return;cOn=false;const n=AC.currentTime;cg.gain.cancelScheduledValues(n);cg.gain.setValueAtTime(cg.gain.value,n);cg.gain.linearRampToValueAtTime(0,n+.4);
   setTimeout(()=>{if(!cOn)ca.pause()},450)}
@@ -127,14 +142,14 @@ function musicInit(){
   for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2)}
   rv.buffer=buf;const rg=a.createGain();rg.gain.value=.3;rv.connect(rg);rg.connect(out);
   const nb=a.createBuffer(1,a.sampleRate,a.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
-  MU.out=out;MU.del=del;MU.rev=rv;MU.noise=nb;return true}
+  MU.out=out;MU.del=del;MU.rev=rv;MU.noise=nb;anLink();return true}
 function env(g,t,peak,att,dec){g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+att);g.gain.exponentialRampToValueAtTime(.0001,t+att+dec)}
 function osc(type,f,t,d,dst,det){const o=AC.createOscillator();o.type=type;o.frequency.value=f;o.detune.value=(det||0)+(MU.warp?(Math.random()-.5)*MU.warp:0);o.connect(dst);o.start(t);o.stop(t+d);return o}
 function noiseHit(t,dur,type,freq,gain,dst,gate,q){const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();
   s.buffer=MU.noise;f.type=type;f.frequency.value=freq;f.Q.value=q||.8;
   if(gate){g.gain.setValueAtTime(gain,t);g.gain.setValueAtTime(gain*.75,t+dur*.85);g.gain.linearRampToValueAtTime(.0001,t+dur)}else env(g,t,gain,.002,dur);
   s.connect(f);f.connect(g);g.connect(dst||MU.out);s.start(t,Math.random()*.5);s.stop(t+dur+.05);return g}
-function dKick(t){const o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(42,t+.11);
+function dKick(t){KQ.push(t);if(KQ.length>64)KQ.shift();const o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(42,t+.11);
   env(g,t,.5,.003,.3);o.connect(g);g.connect(MU.out);o.start(t);o.stop(t+.36);noiseHit(t,.012,"highpass",3000,.08)}
 function dSnare(t){const g=noiseHit(t,.22,"bandpass",1900,.2,MU.out,true);g.connect(MU.rev);                // gated 80s snare
   const h=AC.createGain();env(h,t,.12,.002,.12);osc("triangle",185,t,.15,h);h.connect(MU.out)}
@@ -843,7 +858,23 @@ function psyStep(dt){
 const psyVal=k=>clamp(PSY.v[k]+PSY.nz[k]*(k==="focus"?.5:1),0,1);
 const BREAKQ=["OPERATOR COMPOSURE COMPROMISED. CONTINUING ANYWAY.","PSYCH PROFILE UPDATED. YOU WILL NOT LIKE THE NEW ONE.",
   "BREATHE. THE MACHINE IS NOT ANGRY. THE MACHINE IS NOTHING.","STABILITY BELOW TOLERANCE. ADMINISTERING MORE BALL."];
+function vizHud(t){                                              // LEVEL 16+: the mental meter becomes the music visualizer
+  const n=24,bh=Math.max(46,Math.min(78,H*.13)),x0=16,yb=H-26,pw=6*36+8,brk=PSY.breakT>0,blink=Math.floor(t*8)%2===0,inner=pw-16,slot=inner/n,bw=slot-2;
+  ctx.save();ctx.globalCompositeOperation="source-over";ctx.globalAlpha=0.72;
+  ctx.fillStyle="rgba(0,16,6,.4)";ctx.fillRect(x0-8,yb-bh-34,pw,bh+52);
+  ctx.strokeStyle=brk&&blink?"#ff2233":"rgba(51,255,119,.4)";ctx.lineWidth=1;ctx.strokeRect(x0-8,yb-bh-34,pw,bh+52);
+  ctx.font="10px Courier New";ctx.textAlign="left";ctx.fillStyle="rgba(51,255,119,.8)";ctx.fillText("AUDIO TELEMETRY // SIGNAL",x0-2,yb-bh-21);
+  const segs=12,sh=bh/segs;
+  for(let i=0;i<n;i++){
+    let v=0;if(FD){const lo=Math.floor(Math.pow(140,i/n)),hi=Math.max(lo+1,Math.floor(Math.pow(140,(i+1)/n)));let a=0;for(let k=lo;k<hi;k++)a+=FD[k];v=Math.min(1,a/(hi-lo)/255*1.3)}
+    const x=x0-2+i*slot;
+    for(let g=0;g<segs;g++)if(v*segs>g+.15){const f=g/segs;ctx.fillStyle=f>.8?"#ff4455":f>.55?"#ffb000":"#33ff77";ctx.fillRect(x,yb-(g+1)*sh+1,bw,sh-2)}}
+  ctx.textAlign="center";ctx.fillStyle="rgba(51,255,119,.85)";ctx.font="8px Courier New";ctx.fillText(document.getElementById("np").textContent.replace("// ♪ ","")||"NO SIGNAL",x0-8+pw/2,yb+11);
+  if(brk&&blink){ctx.font="bold 13px Courier New";ctx.textAlign="left";ctx.fillStyle="#ff2233";ctx.shadowColor="#ff2233";ctx.shadowBlur=10;
+    ctx.fillText("WARNING: MENTAL BREAK DETECTED",x0-6,yb-bh-42);ctx.shadowBlur=0}
+  ctx.restore()}
 function psyHud(t){
+  if(st.level>=SONG_FROM_LEVEL){vizHud(t);return}
   const keys=[["STRESS","stress"],["FRUSTR","frust"],["ERRATIC","errat"],["DREAD","dread"],["DISSOC","dissoc"],["FOCUS","focus"]];
   const bw=14,gap=22,bh=Math.max(46,Math.min(78,H*.13)),x0=16,yb=H-26,pw=keys.length*(bw+gap)+8,brk=PSY.breakT>0,blink=Math.floor(t*8)%2===0;
   ctx.save();ctx.globalCompositeOperation="source-over";ctx.globalAlpha=0.72;             // sits in the play area, bottom-left: kept faint so it doesn't block the view
@@ -906,11 +937,12 @@ function paddle(z,x,y,col,fill,t,shape){                         // paddle + glo
   rect(z,x,y,HZ(),"rgba(255,176,0,"+(.6+.4*pu)+")","rgba(255,176,0,"+(.16+.16*pu)+")");
   const q=P(x,y,z);ctx.strokeStyle="rgba(255,176,0,.9)";ctx.beginPath();ctx.moveTo(q[0]-6,q[1]);ctx.lineTo(q[0]+6,q[1]);ctx.moveTo(q[0],q[1]-6);ctx.lineTo(q[0],q[1]+6);ctx.stroke()}
 function draw(t,dt){
+  audioFrame(t,dt);
   ctx.fillStyle="#020804";ctx.fillRect(0,0,W,H);
   ctx.save();if(shake>0.01)ctx.translate((Math.random()-.5)*shake*26,(Math.random()-.5)*shake*26);
   drawFractal(t,dt);entities(t,dt);bgGames(t,dt);
-  ctx.save();ctx.translate(cx,cy);ctx.rotate(vRot);ctx.scale(vScl,vScl);ctx.translate(-cx,-cy);   // the play field (rotates at 30+)
-  const lv=lvl(),beat=lv>=4?0.06*(0.5+0.5*Math.sin(t*(4+lv*0.5))):0;
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(vRot);ctx.scale(vScl*(1+(MODE!=="classic"?MB.v*.012:0)),vScl*(1+(MODE!=="classic"?MB.v*.012:0)));ctx.translate(-cx,-cy);   // the play field (rotates at 30+)
+  const lv=lvl(),beat=(lv>=4?0.06*(0.5+0.5*Math.sin(t*(4+lv*0.5))):0)+(MODE!=="classic"?MB.v*.22:0);
   if(wa>0.02){                                                    // the tunnel walls (they explode at level 10)
     ctx.lineWidth=1;
     for(let i=0;i<=10;i++)rect(i/10,0,0,1,"rgba(51,255,119,"+(wa*(0.12+0.02*(10-i)+beat))+")");
@@ -971,6 +1003,7 @@ function draw(t,dt){
     const n=2+Math.floor(ins*5);
     for(let i=0;i<n;i++){const y=Math.random()*H,h=4+Math.random()*28*ins,dx=(Math.random()-.5)*70*ins;ctx.drawImage(cv,0,y,W,h,dx,y,W,h)}}
   if(MODE==="gef")drawGefGlitches(t);
+  if(MODE!=="classic"&&MB.v>.05){ctx.save();ctx.globalAlpha=MB.v*.16;ctx.strokeStyle="#33ff77";ctx.lineWidth=16;ctx.strokeRect(0,0,W,H);ctx.restore()}   // beat flash on the screen edge
   if(MODE==="test")drawStamina(t);
   if(MODE!=="classic")psyHud(t)}
 function drawStamina(t){                                          // TEST MODE: small stamina meter, bottom-centre
