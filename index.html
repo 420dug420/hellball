@@ -28,10 +28,13 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 #mT:hover{background:rgba(51,214,255,.08);text-shadow:0 0 8px #33d6ff}
 #mC{border-color:#ffb000;color:#ffb000}
 #mC:hover{background:rgba(255,176,0,.08);text-shadow:0 0 8px #ffb000}
+#mD{border-color:#ff66cc;color:#ff66cc}
+#mD:hover{background:rgba(255,102,204,.08);text-shadow:0 0 8px #ff66cc}
+#prof{margin-top:6px;font-size:11px;letter-spacing:1px;line-height:1.8;color:#119944;text-align:center;max-width:560px}
 </style></head><body>
-<div id="hud"><span style="color:#ff4455;text-shadow:0 0 8px #ff4455">HELLBALL <span style="color:#119944;text-shadow:none" id="np"></span></span><button id="mbtn" title="M">MUSIC: ON</button><button id="fbtn" title="force your songs to play (testing)">SONGS: AUTO</button><span id="s"></span></div>
+<div id="hud"><span style="color:#ff4455;text-shadow:0 0 8px #ff4455">HELLBALL <span style="color:#119944;text-shadow:none" id="np"></span> <span style="color:#119944;text-shadow:none;margin-left:10px;letter-spacing:1px" id="pl"></span></span><button id="mbtn" title="M">MUSIC: ON</button><button id="fbtn" title="force your songs to play (testing)">SONGS: AUTO</button><span id="s"></span></div>
 <canvas id="c"></canvas><div id="msg"></div><div id="flash"></div><div id="quote"></div>
-<div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mT" class="mBtn">TEST MODE<small>hold left-click to catch &amp; throw &middot; shift for corkscrew</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button></div>
+<div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mD" class="mBtn">DAILY CHALLENGE<small id="mDs"></small></button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button><div id="prof"></div></div>
 <script src="discord-sdk.js"></script>
 <script>
 const cv=document.getElementById("c"),ctx=cv.getContext("2d"),msg=document.getElementById("msg"),fl=document.getElementById("flash");
@@ -39,6 +42,36 @@ let W,H,A,cx,cy;const ASP=4/3;                                // the tunnel is 4
 function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight-40;A=Math.min(W/ASP,H)*0.47;cx=W/2;cy=H/2}
 addEventListener("resize",rs);rs();
 let MODE="normal";
+/* ---------- profile & stats: saved on this device (browser storage) ---------- */
+const SVK="hb_profile_v1";
+const SV=Object.assign({games:0,total:0,best:0,bestLevel:1,bestAce:0,bestVolley:0,bestSweet:0,fastest:0,aces:0,breakSec:0,daily:{d:"",best:0}},(()=>{try{return JSON.parse(localStorage.getItem(SVK))||{}}catch(e){return{}}})());
+function svSave(){try{localStorage.setItem(SVK,JSON.stringify(SV))}catch(e){}}
+const RUN={ace:0,sweet:0,vol:0,spd:0,brk:0,bestAce:0,bestVol:0,bestSweet:0};     // this run (ace/sweet = current streaks; vol/spd = this point)
+let svT=0;
+const dayKey=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const DAILY_ERA=(()=>{const k=dayKey();let h=2166136261;for(let i=0;i<k.length;i++){h^=k.charCodeAt(i);h=Math.imul(h,16777619)}return 1+((h>>>0)%4)})();   // today's fractal morph: one of the four late-game substrates
+const dailyBest=()=>SV.daily&&SV.daily.d===dayKey()?SV.daily.best:0;
+const plvlOf=t=>Math.floor(Math.sqrt(Math.max(0,t)/1500))+1;                      // player level from lifetime points
+const fmtT=s=>Math.floor(s/60)+"M "+String(Math.floor(s%60)).padStart(2,"0")+"S";
+function updPL(){const e=document.getElementById("pl");if(e)e.textContent="// PLAYER LVL "+plvlOf(SV.total)}
+function profInit(){
+  const pl=plvlOf(SV.total),lo=1500*(pl-1)*(pl-1),hi=1500*pl*pl,pc=Math.max(0,Math.min(99,Math.round(100*(SV.total-lo)/(hi-lo)))),k=Math.round(pc/10);
+  document.getElementById("mDs").innerHTML="TODAY: "+ERAS[DAILY_ERA%5]+" SUBSTRATE &middot; BEST TODAY "+dailyBest();
+  document.getElementById("prof").innerHTML="PLAYER LVL "+pl+" ["+"#".repeat(k)+"-".repeat(10-k)+"] "+pc+"%<br>BEST SCORE "+SV.best+" // BEST LEVEL "+SV.bestLevel+" // GAMES "+SV.games+
+    "<br>ACE STREAK "+SV.bestAce+" // LONGEST VOLLEY "+SV.bestVolley+" // SWEET CHAIN "+SV.bestSweet+"<br>TIME IN BREAKDOWN "+fmtT(SV.breakSec);
+  updPL()}
+function endRun(lv){                                              // game over: bank the run, return a summary for the game-over screen
+  const nb=st.score>SV.best&&st.score>0;
+  SV.games++;if(st.score>SV.best)SV.best=st.score;if(1+lv>SV.bestLevel)SV.bestLevel=1+lv;
+  let dn=false;if(MODE==="daily"){if(SV.daily.d!==dayKey())SV.daily={d:dayKey(),best:0};if(st.score>SV.daily.best){SV.daily.best=st.score;dn=true}}
+  svSave();profInit();
+  const out="<br>ACE STREAK "+RUN.bestAce+"   LONGEST VOLLEY "+RUN.bestVol+"   SWEET CHAIN "+RUN.bestSweet+(RUN.brk>.5?"   TIME IN BREAKDOWN "+fmtT(RUN.brk):"")+
+    "<br>PLAYER LVL "+plvlOf(SV.total)+(nb?"   //   NEW PERSONAL BEST":"")+(dn?"   //   NEW DAILY BEST":"");
+  RUN.ace=RUN.sweet=RUN.vol=RUN.spd=RUN.brk=RUN.bestAce=RUN.bestVol=RUN.bestSweet=0;return out}
+addEventListener("pagehide",svSave);document.addEventListener("visibilitychange",()=>{if(document.hidden)svSave()});
+let tHeld=false;                                                  // hidden: hold T while clicking GEF MODE to enter test mode
+addEventListener("keydown",e=>{if(e.key==="t"||e.key==="T")tHeld=true});addEventListener("keyup",e=>{if(e.key==="t"||e.key==="T")tHeld=false});addEventListener("blur",()=>{tHeld=false});
+
 const AI0=0.52,AIK=0.135,K=2.4,PH0=0.28,BR=0.07,SERVE_MIN=0.8,sc=z=>1/(1+K*z),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let F=1,Ft=1;                                                  // half-size of the play field (1 = the tunnel)
 const P=(x,y,z)=>[cx+x*ASP*(A/F)*sc(z),cy+y*(A/F)*sc(z)];
@@ -242,21 +275,22 @@ let balls=[],extraScored=0;                                    // GEF MODE: bonu
 function reset(){ball={x:0,y:0,z:0.03,vx:0,vy:0,vz:0,sx:0,sy:0,touch:null};trail=[];decoys=[];ai.off=[0,0];ai.plan={type:"",z0:0,ph:0,fx:0,fy:0,until:.5}}
 function show(t,sub,low){msg.className=low?"low":"";msg.innerHTML=t?t+(sub?"<small>"+sub+"</small>":""):""}
 let flT=0;function flash(t,c){fl.textContent=t;fl.style.color=c||"#33ff77";fl.style.opacity=1;clearTimeout(flT);flT=setTimeout(()=>fl.style.opacity=0,1100)}
-function hud(){document.getElementById("s").textContent="LEVEL "+(1+st.level)+(lvl()>=9?" // FIELD UNBOUND":"")+(MODE==="gef"?" // GEF":MODE==="test"?" // TEST":MODE==="classic"?" // CLASSIC":"")+"   LIVES "+"\u2665".repeat(st.lives)+"\u2661".repeat(Math.max(0,LIVES0-st.lives))+"   SCORE "+st.score}
+function hud(){document.getElementById("s").textContent="LEVEL "+(1+st.level)+(lvl()>=9?" // FIELD UNBOUND":"")+(MODE==="gef"?" // GEF":MODE==="test"?" // TEST":MODE==="classic"?" // CLASSIC":MODE==="daily"?" // DAILY":"")+"   LIVES "+"\u2665".repeat(st.lives)+"\u2661".repeat(Math.max(0,LIVES0-st.lives))+"   SCORE "+st.score}
 function pulse(m){const f=document.getElementById("hud");f.style.background=m;setTimeout(()=>f.style.background="",160)}
 try{const lq=parseInt(new URLSearchParams(location.search).get("level"));if(lq>1)st.level=Math.min(99,lq-1)}catch(e){}
 function pickMode(m){                                            // mode is only chosen the first time the game opens; every retry reuses it
   MODE=m;const ov=document.getElementById("modesel");if(ov)ov.classList.add("hidden");
   st.state="ready";hud();
   stamina=1;
-  show("HELLBALL"+(m==="gef"?" // GEF MODE":m==="test"?" // TEST MODE":m==="classic"?" // CLASSIC MODE":""),
+  show("HELLBALL"+(m==="gef"?" // GEF MODE":m==="test"?" // TEST MODE":m==="classic"?" // CLASSIC MODE":m==="daily"?" // DAILY CHALLENGE":""),
     "EVERY POINT BEATS AN OPPONENT - ACE YOUR SERVE TO SKIP 2 LEVELS - YOU HAVE 5 LIVES - MOVE YOUR MOUSE TO AIM - CLICK TO START - THEN SWIPE THE PADDLE THROUGH THE BALL TO SERVE - M MUSIC - B NEXT TRACK - F SOUND FX - G CALMS THE GLITCH"+
     (m==="gef"?"  //  GEF: MUTATING PADDLE SHAPES - RANDOM MULTIBALL VOLLEYS - WALL BREACHES":"")+
     (m==="test"?"  //  TEST: HOLD LEFT-CLICK AS THE BALL ARRIVES TO CATCH IT - MOVE THE MOUSE TO WIND UP SPIN - RELEASE TO THROW - HOLDING A CAUGHT BALL DRAINS STAMINA, SWEET-SPOT HITS REFILL IT - HOLD SHIFT TO PHASE OUT YOUR PADDLE: SWEET SPOT ONLY, CORKSCREW SHOTS":"")+
-    (m==="classic"?"  //  CLASSIC: NO EFFECTS - THE ONLY THING THAT GETS HARDER IS THE AI'S SPEED":""))}
+    (m==="classic"?"  //  CLASSIC: NO EFFECTS - THE ONLY THING THAT GETS HARDER IS THE AI'S SPEED":"")+
+    (m==="daily"?"  //  DAILY: TODAY'S SUBSTRATE IS "+ERAS[DAILY_ERA%5]+" - IT IS ACTIVE FROM THE FIRST SERVE - YOUR BEST SCORE TODAY IS SAVED":""))}
 document.getElementById("mN").addEventListener("click",()=>pickMode("normal"));
-document.getElementById("mG").addEventListener("click",()=>pickMode("gef"));
-document.getElementById("mT").addEventListener("click",()=>pickMode("test"));
+document.getElementById("mG").addEventListener("click",()=>pickMode(tHeld?"test":"gef"));
+document.getElementById("mD").addEventListener("click",()=>pickMode("daily"));
 document.getElementById("mC").addEventListener("click",()=>pickMode("classic"));
 /* ---------- TEST MODE: stamina-limited catch & throw ---------- */
 let stamina=1,held=false,wind={x:0,y:0};
@@ -288,7 +322,7 @@ function padFromScreen(){if(pad.mx===undefined)return;const c=Math.cos(vRot),s=M
 cv.addEventListener("pointermove",e=>{const r=cv.getBoundingClientRect();pad.mx=e.clientX-r.left;pad.my=e.clientY-r.top;padFromScreen();
   pad.tx=clamp(pad.rx,-padLim(),padLim());pad.ty=clamp(pad.ry,-padLim(),padLim());psyMove(e)});
 function toServe(){
-  reset();st.state="serve";st.armAt=performance.now()+700;syncField();
+  RUN.vol=0;RUN.spd=0;reset();st.state="serve";st.armAt=performance.now()+700;syncField();
   show("SWIPE THE PADDLE THROUGH THE BALL TO SERVE","CENTRE OF THE PADDLE = HOT ZONE: MORE CURVE, MORE SPEED",true)}
 cv.addEventListener("pointerdown",e=>{
   if(st.state==="select")return;
@@ -353,7 +387,13 @@ function strike(who,dx,dy,pvx,pvy,serve,trick){
   tink(hot);if(hot)pulse("rgba(255,176,0,.35)");
   if(MODE==="test"&&who==="p"&&hot&&!serve)stamina=Math.min(1,stamina+.75);
   if(ball.cork){flash("CORKSCREW","#33d6ff");tn(1400,.18,"sine",.04,500)}
-  if(who==="p"){ai.off=[(Math.random()*2-1)*aimErr(),(Math.random()*2-1)*aimErr()];planAI();if(!serve)PSY.rally++}
+  if(who==="p"){const nv=MODE!=="classic"&&RUN.sweet>=5?2.2:1;ai.off=[(Math.random()*2-1)*aimErr()*nv,(Math.random()*2-1)*aimErr()*nv];planAI();if(!serve)PSY.rally++}   // 5 sweet spots in a row: the AI aims badly
+  if(!serve){
+    RUN.vol++;RUN.spd=Math.max(RUN.spd,Math.hypot(ball.vx,ball.vy,ball.vz));
+    if(who==="p"){
+      if(hot){RUN.sweet++;if(RUN.sweet>RUN.bestSweet)RUN.bestSweet=RUN.sweet;if(RUN.sweet>SV.bestSweet)SV.bestSweet=RUN.sweet;
+        if(MODE!=="classic"&&!trick){if(RUN.sweet===5)flash("FOCUS LOCK  -  THE AI IS RATTLED","#33d6ff");else if(RUN.sweet>=2&&RUN.sweet<5)flash("SWEET CHAIN x"+RUN.sweet,"#ffb000")}}
+      else RUN.sweet=0}}
   spawnDecoys()}
 function planAI(){                                             // fakes and erratic movement while the ball travels to the AI
   const p={type:"",z0:ball.z,ph:Math.random()*6.28,fx:0,fy:0,until:.45+Math.random()*.25};
@@ -508,17 +548,26 @@ function levelQuote(){const L=lvl(),tier=L>=9?2:L>=5?1:0,r=Math.random();
 function afterPoint(){
   const bonus=Math.round(Math.hypot(ball.sx,ball.sy)*15)*1;      // curve bonus, like the original
   const ace=!ball.hits,jump=(ace?2:1)+extraScored;                 // ACE skips 2; each scored GEF multiball ball skips one more
-  st.score+=(100*(1+lvl())+bonus)*(ace?2:1)+extraScored*180;qNext=20+Math.random()*15;
+  const sc0=st.score;st.score+=(100*(1+lvl())+bonus)*(ace?2:1)+extraScored*180;qNext=20+Math.random()*15;
+  const spdB=MODE==="classic"?0:Math.round(Math.max(0,RUN.spd-.6)*500),volB=MODE==="classic"?0:(RUN.vol>=4?Math.round((RUN.vol-3)*20*(1+.1*lvl())):0);   // ball-speed bonus + volley-length bonus
+  st.score+=spdB+volB;
+  const bt=(spdB?"   SPEED +"+spdB:"")+(volB?"   VOLLEY x"+RUN.vol+" +"+volB:"");
+  if(ace){RUN.ace++;SV.aces++;if(RUN.ace>RUN.bestAce)RUN.bestAce=RUN.ace;if(RUN.ace>SV.bestAce)SV.bestAce=RUN.ace}else RUN.ace=0;
+  if(RUN.vol>RUN.bestVol)RUN.bestVol=RUN.vol;if(RUN.vol>SV.bestVolley)SV.bestVolley=RUN.vol;
+  {const sp=Math.round(RUN.spd*100);if(sp>SV.fastest)SV.fastest=sp}
+  {const p0=plvlOf(SV.total);SV.total+=st.score-sc0;const p1=plvlOf(SV.total);updPL();if(p1>p0)setTimeout(()=>flash("PLAYER LEVEL UP: "+p1,"#ff66cc"),1300)}
+  svSave();
   tn(880,.12,"sine",.06);tn(1320,.2,"sine",.05);pulse("rgba(51,255,119,.35)");
   let extra=0;for(let k=0;k<jump;k++){st.level++;if(st.level%2===0&&st.lives<LIVES0){st.lives++;extra++}}   // +1 life at levels 3, 5, 7, 9
-  if(lvl()<9||ace&&lvl()===10){flash((ace?"ACE!   SKIPPING TO LEVEL ":"OPPONENT DEFEATED   LEVEL ")+(1+st.level)+(extraScored?"   +"+extraScored+" MULTIBALL SKIP"+(extraScored>1?"S":""):"")+(extra?"   +"+extra+" LIFE":"")+(bonus>30?"   CURVE +"+bonus:""),ace?"#ffb000":"#33ff77")}
+  if(lvl()<9||ace&&lvl()===10){flash((ace?"ACE!   SKIPPING TO LEVEL ":"OPPONENT DEFEATED   LEVEL ")+(1+st.level)+(extraScored?"   +"+extraScored+" MULTIBALL SKIP"+(extraScored>1?"S":""):"")+(extra?"   +"+extra+" LIFE":"")+(bonus>30?"   CURVE +"+bonus:"")+bt+(ace&&RUN.ace>1?"   ACE STREAK x"+RUN.ace:""),ace?"#ffb000":"#33ff77")}
+  if(!(lvl()<9||ace&&lvl()===10)&&(bt||(ace&&RUN.ace>1)))flash((bt+(ace&&RUN.ace>1?"   ACE STREAK x"+RUN.ace:"")).trim(),"#33d6ff");
   if(lvl()>=2&&lvl()!==9)levelQuote();
   if(ace){[784,988,1175,1568].forEach((f,i)=>setTimeout(()=>tn(f,.18,"square",.045),i*90))}
   else{tn(660,.15,"square",.04);setTimeout(()=>tn(990,.25,"square",.04),120)}
   extraScored=0;psyEvent(ace?"ace":"point");hud();toServe()}
 function afterMiss(){
-  st.lives--;psyEvent(st.lives<=0?"over":"miss");tn(130,.4,"sawtooth",.07,60);pulse("rgba(255,68,85,.45)");hud();
-  if(st.lives<=0){st.state="over";const lv=st.level;st.level=0;reset();syncField();balls=[];extraScored=0;breach=null;gefGlitches=[];stamina=1;if(MU.secret){MU.secret=false;MU.mel=null;MU.bar=0;MU.s=0;np();musicStop();musicStart()}else if(cMode&&!cForce){cSwitch(false)}show("GAME OVER","REACHED LEVEL "+(1+lv)+"   FINAL SCORE "+st.score+" - CLICK TO RESTART")}
+  RUN.sweet=0;RUN.ace=0;st.lives--;psyEvent(st.lives<=0?"over":"miss");tn(130,.4,"sawtooth",.07,60);pulse("rgba(255,68,85,.45)");hud();
+  if(st.lives<=0){st.state="over";const lv=st.level;st.level=0;reset();syncField();balls=[];extraScored=0;breach=null;gefGlitches=[];stamina=1;if(MU.secret){MU.secret=false;MU.mel=null;MU.bar=0;MU.s=0;np();musicStop();musicStart()}else if(cMode&&!cForce){cSwitch(false)}show("GAME OVER","REACHED LEVEL "+(1+lv)+"   FINAL SCORE "+st.score+" - CLICK TO RESTART"+endRun(lv))}
   else{flash("MISSED   "+st.lives+(st.lives===1?" LIFE":" LIVES")+" LEFT  -  MULTIBALL CONTINUES","#ff4455");if(MODE!=="classic"&&Math.random()<.5)quote(pickQ(MISSQ,"m"));toServe()}}
 function step(dt){
   st.clock+=dt;
@@ -589,7 +638,9 @@ function step(dt){
     if(pl.type==="fake"){if(prog<pl.until){tx=clamp(pl.fx,-lim,lim);ty=clamp(pl.fy,-lim,lim)}else mul=2.2}
     else if(pl.type==="erratic"){const a=(0.4+0.08*lvl())*(1-0.85*prog);
       tx=clamp(tx+Math.sin(st.clock*9+pl.ph)*a*F*0.6,-lim,lim);ty=clamp(ty+Math.cos(st.clock*7.3+pl.ph*1.7)*a*F*0.5,-lim,lim);mul=1.4}}
-  if(ball.cork&&ball.vz>0&&Math.abs(ball.vz)>=0.75*DEF_SPEED)mul*=ball.z<0.3?0:0.5;   // a fast corkscrew throws the AI: late to react, then sluggish
+  if(ball.cork&&ball.vz>0&&Math.abs(ball.vz)>=0.75*DEF_SPEED)mul*=ball.z<0.3?0:0.5;
+  if(MODE!=="classic"&&RUN.sweet>=5){                              // 5 sweet spots in a row: the AI gets nervous: it shakes and reacts slower
+    tx=clamp(tx+(Math.sin(st.clock*11)*.1+Math.sin(st.clock*17.3+1)*.06)*F,-lim,lim);ty=clamp(ty+Math.cos(st.clock*13)*.09*F,-lim,lim);mul*=.78}   // a fast corkscrew throws the AI: late to react, then sluggish
   if(MODE==="classic"){
     if(ball.fooled&&ball.vz>0&&ball.z<0.5){                       // can't read a really fast ball yet: it watches YOUR paddle instead
       const lg=padLag();                                         // lagged, damped and wobbling, so it never looks like a mirror
@@ -621,7 +672,7 @@ let fa=0,fFrame=0;
 function hsl(h,s,l){h/=360;const f=n=>{const k=(n+h*12)%12,a=s*Math.min(l,1-l);return l-a*Math.max(-1,Math.min(k-3,Math.min(9-k,1)))};return[Math.round(255*f(0)),Math.round(255*f(8)),Math.round(255*f(4))]}
 function hueFor(lv,t){return lv>=9?(t*50)%360:140-Math.min(140,lv*13)}   // neon green -> amber -> red, then the full spectrum
 const ERAS=["JULIA","BURNING SHIP","TRICORN","CUBIC","CELTIC"];
-const fEra=()=>lvl()>=39?1+Math.floor((lvl()-39)/10):0;           // displayed level 40 = era 1, 50 = era 2 ...
+const fEra=()=>MODE==="daily"?DAILY_ERA:lvl()>=39?1+Math.floor((lvl()-39)/10):0;   // DAILY: a late-game morph is active from the start           // displayed level 40 = era 1, 50 = era 2 ...
 const EC=[[-0.76,0.15],[-1.2,-0.05],[-0.62,0.42],[0.42,0.08],[-0.78,0.12]];
 const fcPrev=document.createElement("canvas");fcPrev.width=FW;fcPrev.height=FH;let lastEra=0,morphA=0;
 function julia(lv,t){
@@ -835,24 +886,25 @@ function psyMove(e){const n=performance.now(),x=e.clientX,y=e.clientY;
   PSY.lmx=x;PSY.lmy=y;PSY.lmt=n;PSY.lastMove=n}
 function psyClick(){const n=performance.now();PSY.clicks++;if(n-PSY.lastClick<350)PSY.v.frust=Math.min(1,PSY.v.frust+.07);PSY.lastClick=n}
 function psyEvent(k){const v=PSY.v;
-  if(k==="miss"){v.frust=Math.min(1,v.frust+.3);v.stress=Math.min(1,v.stress+.2);PSY.rally=0;PSY.misses++}
+  if(k==="miss"){v.frust=Math.min(1,v.frust+.4);v.stress=Math.min(1,v.stress+.3);PSY.rally=0;PSY.misses++}
   else if(k==="over"){v.frust=Math.min(1,v.frust+.55);PSY.rally=0;PSY.misses++}
   else if(k==="point"){v.frust=Math.max(0,v.frust-.12)}
   else if(k==="ace"){v.frust=Math.max(0,v.frust-.3);v.focus=Math.min(1,v.focus+.2)}}
 function psyStep(dt){
-  const v=PSY.v,L=lvl(),n=performance.now();
+  const v=PSY.v,L=lvl(),n=performance.now();if((svT+=dt)>12){svT=0;svSave()}
   PSY.spd*=Math.exp(-dt*1.5);PSY.rev*=Math.exp(-dt*.9);
-  v.errat+=(clamp(PSY.spd/3200*.55+PSY.rev*.07,0,1)-v.errat)*Math.min(1,dt*3);
-  v.frust=clamp(v.frust-dt*.022+(v.errat>.7?dt*.08:0),0,1);
+  v.errat+=(clamp(PSY.spd/5600*.4+PSY.rev*.035,0,.88)-v.errat)*Math.min(1,dt*3);   // ERRATIC rarely maxes out now
+  v.frust=clamp(v.frust-dt*.015+(v.errat>.7?dt*.05:0),0,1);
   const threat=st.state==="play"&&ball.vz<0?(1-ball.z)*Math.min(1,Math.abs(ball.vz)/.9):0;
-  v.stress+=(clamp(.1+(1-st.lives/LIVES0)*.35+threat*.35+v.frust*.3+Math.min(.25,L/80),0,1)-v.stress)*Math.min(1,dt*2.2);
-  v.dread+=(clamp(L/35*.7+ents.length*.06+insane()*.2+bgG.length*.04+decoys.length*.05,0,1)-v.dread)*Math.min(1,dt*.4);
+  v.stress+=(clamp(.12+(1-st.lives/LIVES0)*.5+threat*.5+v.frust*.4+Math.min(.35,L/45),0,1)-v.stress)*Math.min(1,dt*2.2);
+  v.dread+=(clamp(L/26*.8+ents.length*.08+insane()*.25+bgG.length*.05+decoys.length*.06,0,1)-v.dread)*Math.min(1,dt*.4);
   const idle=(n-PSY.lastMove)/1000;
-  v.dissoc+=(clamp((idle>2?Math.min(.75,(idle-2)*.12):0)+(L>=29?.25:0)+(L>=34?.25:0)+morphA*.3,0,1)-v.dissoc)*Math.min(1,dt*.6);
-  v.focus+=(clamp(.35+PSY.rally*.07-v.errat*.5-v.frust*.3,0,1)-v.focus)*Math.min(1,dt*1.5);
+  v.dissoc+=(clamp((idle>2?Math.min(.85,(idle-2)*.16):0)+(L>=15?.15:0)+(L>=22?.2:0)+(L>=29?.2:0)+(L>=34?.2:0)+morphA*.35,0,1)-v.dissoc)*Math.min(1,dt*.6);
+  v.focus+=(clamp(RUN.sweet/5,0,1)-v.focus)*Math.min(1,dt*2);   // FOCUS = your sweet-spot chain (5 in a row = full)
   for(const k in PSY.nz)PSY.nz[k]+=((Math.random()-.5)*.14-PSY.nz[k]*.6)*Math.min(1,dt*7);   // nobody's mind is perfectly still
   PSY.cool-=dt;PSY.breakT=Math.max(0,PSY.breakT-dt);
   if(["stress","frust","errat","dread","dissoc"].some(k=>psyVal(k)>=.97)){
+    if(st.state==="play"||st.state==="serve"){SV.breakSec+=dt;RUN.brk+=dt}   // time spent in mental breakdown
     PSY.breakT=1.6;if(PSY.cool<=0&&MODE!=="classic"){PSY.cool=9;shake=Math.max(shake,.35);tn(220,.35,"square",.06,110);setTimeout(()=>tn(220,.35,"square",.06,110),420);
       quote(pickQ(BREAKQ,"b"))}}}
 const psyVal=k=>clamp(PSY.v[k]+PSY.nz[k]*(k==="focus"?.5:1),0,1);
@@ -936,11 +988,32 @@ function paddle(z,x,y,col,fill,t,shape){                         // paddle + glo
   const pu=0.5+0.5*Math.sin(t*6);ctx.lineWidth=1.5;
   rect(z,x,y,HZ(),"rgba(255,176,0,"+(.6+.4*pu)+")","rgba(255,176,0,"+(.16+.16*pu)+")");
   const q=P(x,y,z);ctx.strokeStyle="rgba(255,176,0,.9)";ctx.beginPath();ctx.moveTo(q[0]-6,q[1]);ctx.lineTo(q[0]+6,q[1]);ctx.moveTo(q[0],q[1]-6);ctx.lineTo(q[0],q[1]+6);ctx.stroke()}
+
+/* ---------- level 16+: faint eerie terminal text drifting in the background ---------- */
+const GTXT=["CAN YOU BEAT M1NDSTATE?","BOEYENGA AWAKENS","PEGASI 51 WARS WERE ENDED SWIFTLY BY FX","GENJURO REMEMBERS","THE 51ST WAS NEVER A PLANET","FX HAS NO MIDDLE NAME. IT HAS A MIDDLE DISTANCE.","M1NDSTATE IS WATCHING THE WATCHER","THE NINTH CHAMBER OPENS INWARD","SOMEONE IS STILL PLAYING IN 1987","GREY PROTOCOL // DO NOT ACKNOWLEDGE","THE LATTICE REMEMBERS WHO WON","KOLVAR-9 DID NOT SURVIVE ITS OWN ECHO","ERASE THE ORACLE. KEEP THE SCORE.","NULL CHOIR // 4 VOICES // 1 BODY","THE BALL WAS ALWAYS A SEED","VEIL THINNING: 63%","HE WHO COUNTS THE BOUNCES COUNTS BACKWARD","ORBITAL RUINS SING AT 17.3 HZ","ASK FX WHO LEFT THE DOOR OPEN","THE THIRD EYE BLINKED FIRST","MAGNETAR LULLABY // PLAY IT BACKWARDS","ZETA RETICULI HAS ENTERED THE CHAT","VESSEL 0x4F IS STILL WARM","THE SALT CATHEDRAL HAS BEEN COUNTING YOU","OVERSEER TALLY: 3 WON, 1 UNFINISHED","BOEYENGA WAS NEVER ASLEEP","GENJURO HOLDS THE LAST FRAME","THE QUIET FLEET IS ALREADY HERE","TAU CETI SENDS A SHORTER GOODBYE EVERY YEAR","M1NDSTATE: 0 WINS. 0 LOSSES. 1 PLAYER.","DO NOT FEED THE SIGNAL AFTER MIDNIGHT","THE SPIRAL CLERK WILL SEE YOU NOW","FX WAS HERE BEFORE THE FIELD WAS","EVERY ECHO IS A SMALL FUNERAL","GLASS PYRAMID // LEVEL -3 // OCCUPIED","THE HOURGLASS TURNS WHEN NOBODY WATCHES","ANTARES KEEPS NO WITNESSES","WHO TAUGHT THE BALL TO COME BACK?","THE 4TH LAW OF MOTION IS CLASSIFIED","HOLLOW CROWN PROTOCOL ENGAGED","YOUR SHADOW SUBMITTED A SCORE LAST NIGHT","THE MOTHER LOGIC IS HUNGRY AND POLITE","NINE BELLS // NO TOWER","SEALED BY GENJURO. OPENED BY YOU."];
+let ghosts=[],gNext=6;
+const GFONT='"Perfect DOS VGA 437","Px437 IBM VGA8","Lucida Console","Courier New",monospace';
+function drawGhosts(t,dt){
+  if(MODE==="classic"||st.level<15||st.state==="select"){ghosts.length=0;gNext=4;return}
+  gNext-=dt;
+  if(gNext<=0&&ghosts.length<2){
+    const text=pickQ(GTXT,"gh"),size=Math.round(15+Math.random()*7);
+    ctx.save();ctx.font=size+"px "+GFONT;const w=ctx.measureText(text).width;ctx.restore();
+    ghosts.push({text,size,w,x:W*.03+Math.random()*Math.max(1,W*.94-w),y:H*.14+Math.random()*H*.62,age:0,life:6+Math.random()*3,
+      col:["51,255,119","255,176,0","255,68,85","51,214,255"][Math.floor(Math.random()*4)],seed:Math.random()*100});
+    gNext=5+Math.random()*8}
+  ctx.save();ctx.globalCompositeOperation="source-over";ctx.textAlign="left";
+  for(let i=ghosts.length-1;i>=0;i--){
+    const g=ghosts[i];g.age+=dt;if(g.age>g.life){ghosts.splice(i,1);continue}
+    const k=g.age/g.life,fade=Math.min(1,g.age/1.2,(g.life-g.age)/1.6),fl=Math.sin(t*23+g.seed)>.93?.45:1,n=Math.min(g.text.length,Math.floor(g.age*26));   // types itself in, flickers now and then
+    ctx.font=g.size+"px "+GFONT;ctx.fillStyle="rgba("+g.col+","+(.36*fade*fl)+")";ctx.shadowColor="rgba("+g.col+",.5)";ctx.shadowBlur=6;
+    ctx.fillText(g.text.slice(0,n)+(n<g.text.length?"_":""),g.x+Math.sin(t*.7+g.seed)*3,g.y+Math.cos(t*.5+g.seed)*3)}
+  ctx.restore()}
 function draw(t,dt){
   audioFrame(t,dt);
   ctx.fillStyle="#020804";ctx.fillRect(0,0,W,H);
   ctx.save();if(shake>0.01)ctx.translate((Math.random()-.5)*shake*26,(Math.random()-.5)*shake*26);
-  drawFractal(t,dt);entities(t,dt);bgGames(t,dt);
+  drawFractal(t,dt);entities(t,dt);bgGames(t,dt);drawGhosts(t,dt);
   ctx.save();ctx.translate(cx,cy);ctx.rotate(vRot);ctx.scale(vScl*(1+(MODE!=="classic"?MB.v*.012:0)),vScl*(1+(MODE!=="classic"?MB.v*.012:0)));ctx.translate(-cx,-cy);   // the play field (rotates at 30+)
   const lv=lvl(),beat=(lv>=4?0.06*(0.5+0.5*Math.sin(t*(4+lv*0.5))):0)+(MODE!=="classic"?MB.v*.22:0);
   if(wa>0.02){                                                    // the tunnel walls (they explode at level 10)
@@ -1028,6 +1101,6 @@ function frame(t){
   finally{ctx.restore();ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";ctx.shadowBlur=0;ctx.setLineDash&&ctx.setLineDash([])}}
 document.addEventListener("visibilitychange",()=>{last=performance.now()});
 addEventListener("focus",()=>{last=performance.now()});
-reset();hud();
+reset();hud();profInit();
 requestAnimationFrame(frame);
 </script></body></html>
