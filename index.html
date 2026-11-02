@@ -83,7 +83,9 @@ const SONG=()=>MU.secret?SECRET:SONGS[MU.si],SD=()=>60/SONG().bpm/4;
      {name:"My Song",file:"music/my-song.mp3"}
    If this list is empty the built-in synth soundtrack plays. The MY MUSIC button also loads files from your computer (this session only). */
 const TRACKS=[
-  // {name:"MY SONG",file:"music/my-song.mp3"},
+  {name:"LIGHT",file:"music/light.ogg"},
+  {name:"SEWNT",file:"music/sewnt.ogg"},
+  {name:"VON",file:"music/von.ogg"},
 ];
 const CUSTOM=()=>TRACKS.length>0&&!MU.secret;
 let ci=Math.floor(Math.random()*Math.max(1,TRACKS.length)),ca=null,cg=null,cOn=false;
