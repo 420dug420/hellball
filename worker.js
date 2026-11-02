@@ -33,7 +33,7 @@ export class Room {
 }
 export default {
   async fetch(req, env) {
-    const m = new URL(req.url).pathname.match(/^\/(?:\.proxy\/)?ws\/([A-Za-z0-9_-]{1,80})$/);
+    const m = new URL(req.url).pathname.match(/^\/(?:\.proxy\/)?(?:ws\/)?((?:dc|web)-[A-Za-z0-9_-]{1,80})$/);   // /ws/<room>, or just /<room> if a Discord URL mapping stripped the /ws
     if (m) return env.ROOMS.get(env.ROOMS.idFromName(m[1])).fetch(req);
     return env.ASSETS.fetch(req);
   }

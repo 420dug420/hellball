@@ -5,7 +5,7 @@
 <style>
 :root{--hl:140,232,255;--hi:rgb(140,232,255);--g0:rgb(1,4,14);--g1:rgb(3,16,34);--ui:"Segoe UI Variable Display","Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;--ink:#eef4f8;--dim:rgba(238,244,248,.45)}
 html,body{margin:0;height:100%;background:var(--g0);color:var(--ink);font-family:var(--ui);font-weight:400;overflow:hidden}
-#hud{height:40px;display:flex;justify-content:space-between;align-items:center;padding:0 18px;border-bottom:1px solid rgba(var(--hl),.22);letter-spacing:3px;font-size:13px;background:var(--g0);transition:background .16s}
+#hud{height:40px;display:flex;justify-content:space-between;align-items:center;padding:0 18px;border-bottom:1px solid rgba(var(--hl),.22);letter-spacing:2px;font-size:13px;white-space:nowrap;background:var(--g0);transition:background .16s}
 #c{display:block;cursor:none;touch-action:none}
 #msg{position:fixed;left:0;right:0;top:50%;text-align:center;font-size:24px;font-weight:300;letter-spacing:8px;pointer-events:none;color:var(--ink);text-shadow:0 0 12px rgba(var(--hl),.9),0 0 30px rgba(var(--hl),.4)}
 #msg.low{top:auto;bottom:46px;font-size:18px}
@@ -14,6 +14,8 @@ html,body{margin:0;height:100%;background:var(--g0);color:var(--ink);font-family
 #flash{position:fixed;left:0;right:0;top:64px;text-align:center;font-size:18px;font-weight:600;letter-spacing:8px;pointer-events:none;opacity:0;transition:opacity .25s;text-shadow:0 0 10px currentColor}
 #mbtn{background:transparent;border:1px solid var(--dim);color:var(--hi);font-family:var(--ui);font-size:11px;letter-spacing:2px;padding:3px 9px;cursor:pointer;border-radius:999px}
 #fbtn{background:transparent;border:1px solid var(--dim);color:var(--hi);font-family:var(--ui);font-size:11px;letter-spacing:2px;padding:3px 9px;cursor:pointer;border-radius:999px;margin-left:6px}
+#fym{position:fixed;left:0;right:0;top:48px;text-align:center;font-size:30px;letter-spacing:14px;color:#ff66cc;text-shadow:0 0 14px #ff66cc,0 0 30px #ff2299;pointer-events:none;display:none;z-index:6;animation:fymb .5s steps(1) infinite}
+@keyframes fymb{0%{opacity:1}50%{opacity:.08}}
 #fbtn.on{color:#ffb000;border-color:#ffb000;text-shadow:0 0 6px #ffb000}
 #menuBtn{background:transparent;border:1px solid var(--dim);color:var(--hi);font-family:var(--ui);font-size:11px;letter-spacing:2px;padding:3px 9px;cursor:pointer;border-radius:999px;margin-right:6px}
 #menuBtn:hover{border-color:var(--hi);text-shadow:0 0 6px var(--hi)}
@@ -42,6 +44,7 @@ html,body{margin:0;height:100%;background:var(--g0);color:var(--ink);font-family
 #lbStatus{font-size:13px;letter-spacing:2px;line-height:1.9;color:var(--dim);max-width:560px}
 #lbLink{width:min(460px,90vw);background:rgba(2,6,16,.5);border:1px solid rgba(var(--hl),.35);border-radius:10px;color:var(--ink);font-family:var(--ui);font-size:12px;padding:8px 10px;text-align:center;-webkit-user-select:text;user-select:text}
 #prof{margin-top:6px;font-size:11px;letter-spacing:1px;line-height:1.8;color:var(--dim);text-align:center;max-width:560px}
+body.boss #quote{top:150px}body.boss #flash{top:124px}
 
 html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;touch-action:none}
 #tb{position:fixed;right:10px;bottom:10px;display:none;flex-direction:column;gap:8px;z-index:30}
@@ -63,11 +66,6 @@ body.touch #tb{display:flex}
   .mBtn{min-width:0;width:calc(50% - 16px);padding:8px 6px;font-size:13px;letter-spacing:1px}.mBtn small{font-size:9px;margin-top:3px}
   #prof{width:100%;max-width:none;font-size:10px;line-height:1.4;margin-top:0}}
 </style></head><body>
-<div id="hud"><span style="color:var(--ink);font-weight:600;letter-spacing:7px;text-shadow:0 0 12px rgba(var(--hl),.7)">HELLBALL <span style="color:var(--dim);font-weight:400;letter-spacing:2px;text-shadow:none" id="np"></span> <span style="color:var(--dim);font-weight:400;text-shadow:none;margin-left:10px;letter-spacing:1px" id="pl"></span></span><button id="menuBtn" title="R">MENU</button><button id="mbtn" title="M">MUSIC: ON</button><button id="fbtn" title="force your songs to play (testing)">SONGS: AUTO</button><span id="s"></span></div>
-<canvas id="c"></canvas><div id="msg"></div><div id="flash"></div><div id="quote"></div>
-<div id="tb"><button id="tbN" title="next track">NEXT</button><button id="tbF" title="sound fx">FX</button><button id="tbG" title="tap: glitch on/off, hold: calm">GLITCH</button></div><div id="rot">ROTATE YOUR DEVICE<small>HELLBALL IS PLAYED IN LANDSCAPE</small></div>
-<div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mD" class="mBtn">DAILY CHALLENGE<small id="mDs"></small></button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button><button id="mO" class="mBtn">1V1 ONLINE<small>play a friend &middot; first to 7</small></button><div id="prof"></div></div>
-<div id="lobby" class="hidden"><div class="msTitle">1V1 ONLINE</div><div id="lbCode"></div><div id="lbStatus"></div><input id="lbLink" class="hidden" readonly><button id="lbCopy" class="mBtn hidden">COPY INVITE LINK</button><button id="lbReady" class="mBtn hidden">READY</button><button id="lbBack" class="mBtn">BACK TO MENU</button></div>
 <!--DISCORD--><script src="discord-sdk.js"></script>
 <script>
 /* Discord Activity handshake: only runs inside Discord (the iframe URL carries frame_id). App ID comes from <app-id>.discordsays.com */
@@ -78,14 +76,22 @@ body.touch #tb{display:flex}
   try{await sdk.commands.setOrientationLockState({lock_state:3})}catch(e){}   // landscape on phones
 }catch(e){console.warn("Discord SDK:",e)}})();
 </script><!--/DISCORD-->
+<div id="hud"><span style="color:var(--ink);font-weight:600;letter-spacing:7px;text-shadow:0 0 12px rgba(var(--hl),.7)">HELLBALL <span style="color:var(--dim);font-weight:400;letter-spacing:2px;text-shadow:none" id="np"></span> <span style="color:var(--dim);font-weight:400;text-shadow:none;margin-left:10px;letter-spacing:1px" id="pl"></span></span><button id="menuBtn" title="R">MENU</button><button id="mbtn" title="M">MUSIC: ON</button><button id="fbtn" title="force your songs to play (testing)">SONGS: AUTO</button><span id="s"></span></div>
+<canvas id="c"></canvas><div id="msg"></div><div id="flash"></div><div id="fym">FREE YOUR MIND</div><div id="quote"></div>
+<div id="tb"><button id="tbN" title="next track">NEXT</button><button id="tbF" title="sound fx">FX</button><button id="tbG" title="tap: glitch on/off, hold: calm">GLITCH</button></div><div id="rot">ROTATE YOUR DEVICE<small>HELLBALL IS PLAYED IN LANDSCAPE</small></div>
+<div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mD" class="mBtn">DAILY CHALLENGE<small id="mDs"></small></button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button><button id="mO" class="mBtn">1V1 ONLINE<small>play a friend &middot; first to 7</small></button><div id="prof"></div></div>
+<div id="lobby" class="hidden"><div class="msTitle">1V1 ONLINE</div><div id="lbCode"></div><div id="lbStatus"></div><input id="lbLink" class="hidden" readonly><button id="lbCopy" class="mBtn hidden">COPY INVITE LINK</button><button id="lbReady" class="mBtn hidden">READY</button><button id="lbBack" class="mBtn">BACK TO MENU</button></div>
 <script>
 const cv=document.getElementById("c"),ctx=cv.getContext("2d"),msg=document.getElementById("msg"),fl=document.getElementById("flash");
 let W,H,A,cx,cy;const ASP=4/3;                                // the tunnel is 4:3, like the original
 function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight-(innerWidth<=900&&innerHeight<=560?34:40);A=Math.min(W/ASP,H)*0.47;cx=W/2;cy=H/2}
 addEventListener("resize",rs);rs();
 let MODE="normal";
+let bossOn=false,fmOn=false;                                     // stage 10 (the cylinder) / the secret stage (FREE YOUR MIND)
+function setBoss(on){bossOn=on;document.body.classList.toggle("boss",on)}
+function fymShow(on){const e=document.getElementById("fym");if(e)e.style.display=on?"block":"none"}
 /* ---------- profile & stats: saved on this device (browser storage) ---------- */
-const SVK="hb_profile_v1";
+const SVK="tb_profile_v1";
 const SV=Object.assign({games:0,total:0,best:0,bestLevel:1,bestAce:0,bestVolley:0,bestSweet:0,fastest:0,aces:0,breakSec:0,daily:{d:"",best:0}},(()=>{try{return JSON.parse(localStorage.getItem(SVK))||{}}catch(e){return{}}})());
 function svSave(){try{localStorage.setItem(SVK,JSON.stringify(SV))}catch(e){}}
 const RUN={ace:0,sweet:0,vol:0,spd:0,brk:0,bestAce:0,bestVol:0,bestSweet:0};     // this run (ace/sweet = current streaks; vol/spd = this point)
@@ -188,7 +194,7 @@ function cInit(){
   ca=new Audio();ca.preload="auto";ca.crossOrigin="anonymous";
   cg=AC.createGain();cg.gain.value=0;csrc=AC.createMediaElementSource(ca);csrc.connect(cg);cg.connect(AC.destination);anLink();
   ca.addEventListener("ended",()=>{if(cOn)cAdvance()});
-  ca.addEventListener("error",()=>{if(cOn&&TRACKS.length>1){ci=(ci+1)%TRACKS.length;cLoad()}});
+  let cErr=0;ca.addEventListener("error",()=>{if(!cOn)return;if(++cErr<=TRACKS.length&&TRACKS.length>1){ci=(ci+1)%TRACKS.length;cLoad()}else{cErr=0;cSwitch(false)}});
   return true}
 function cAdvance(){                                                // a track finished: pick what plays next
   ci=(ci+1)%TRACKS.length;if(pickCustom())cLoad();else{cMode=false;musicStop();musicStart()}}
@@ -303,7 +309,7 @@ addEventListener("keyup",e=>{if(e.key==="g"||e.key==="G"){const held=performance
 /* ---------- state + difficulty ---------- */
 const LIVES0=5;
 const st={score:0,level:0,lives:LIVES0,state:"select",armAt:0,clock:0};
-const lvl=()=>MODE==="classic"?0:st.level;                 // 0 = level 1; beat the opponent to go up a level. CLASSIC: everything stays at round 1...
+const lvl=()=>MODE==="classic"?0:st.level>=10?st.level-1:st.level;   // difficulty level. Stage 10 (st.level 9) is the cylinder boss; everything after it is shifted up by one stage                 // 0 = level 1; beat the opponent to go up a level. CLASSIC: everything stays at round 1...
 const PHe=()=>PH0*(1-0.01*Math.min(lvl(),12));             // paddle half-size shrinks a tiny bit each level
 const HZ=()=>PHe()*0.34;                                   // HOT ZONE: the centre of the paddle
 const baseSpeed=()=>Math.min(0.95,0.5+0.05*Math.floor(lvl()/2));   // the ball barely speeds up between levels
@@ -317,7 +323,8 @@ let balls=[],extraScored=0;                                    // GEF MODE: bonu
 function reset(){ball={x:0,y:0,z:0.03,vx:0,vy:0,vz:0,sx:0,sy:0,touch:null};trail=[];decoys=[];ai.off=[0,0];ai.plan={type:"",z0:0,ph:0,fx:0,fy:0,until:.5}}
 function show(t,sub,low){msg.className=low?"low":"";msg.innerHTML=t?t+(sub?"<small>"+sub+"</small>":""):""}
 let flT=0;function flash(t,c){fl.textContent=t;fl.style.color=c||TLH;fl.style.opacity=1;clearTimeout(flT);flT=setTimeout(()=>fl.style.opacity=0,1100)}
-function hud(){if(MODE==="online")return netHud();document.getElementById("s").textContent="LEVEL "+(1+st.level)+(lvl()>=9?" // FIELD UNBOUND":"")+(MODE==="gef"?" // GEF":MODE==="test"?" // TEST":MODE==="classic"?" // CLASSIC":MODE==="daily"?" // DAILY":"")+"   LIVES "+"\u2665".repeat(st.lives)+"\u2661".repeat(Math.max(0,LIVES0-st.lives))+"   SCORE "+st.score}
+function hud(){if(MODE==="online")return netHud();if(fmOn){document.getElementById("s").textContent="LEVEL "+(1+st.level)+" // FREE YOUR MIND   RETURNED "+FM.ret+"   SCORE "+st.score;return}
+  if(bossOn){document.getElementById("s").textContent="LEVEL 10 // THE CYLINDER "+BOSS.cp+"/"+CP0+"   MENTAL STRESS "+BOSS.msp+"/"+MSP0+"   SCORE "+st.score;return}document.getElementById("s").textContent="LEVEL "+(1+st.level)+(lvl()>=9?" // FIELD UNBOUND":"")+(MODE==="gef"?" // GEF":MODE==="test"?" // TEST":MODE==="classic"?" // CLASSIC":MODE==="daily"?" // DAILY":"")+"   LIVES "+"\u2665".repeat(st.lives)+"\u2661".repeat(Math.max(0,LIVES0-st.lives))+"   SCORE "+st.score}
 function pulse(m){const f=document.getElementById("hud");f.style.background=m;setTimeout(()=>f.style.background="",160)}
 try{const lq=parseInt(new URLSearchParams(location.search).get("level"));if(lq>1)st.level=Math.min(99,lq-1)}catch(e){}
 function pickMode(m){                                            // mode is only chosen the first time the game opens; every retry reuses it
@@ -329,13 +336,14 @@ function pickMode(m){                                            // mode is only
     (m==="gef"?"  //  GEF: MUTATING PADDLE SHAPES - RANDOM MULTIBALL VOLLEYS - WALL BREACHES":"")+
     (m==="test"?"  //  TEST: HOLD LEFT-CLICK AS THE BALL ARRIVES TO CATCH IT - MOVE THE MOUSE TO WIND UP SPIN - RELEASE TO THROW - HOLDING A CAUGHT BALL DRAINS STAMINA, SWEET-SPOT HITS REFILL IT - HOLD SHIFT TO PHASE OUT YOUR PADDLE: SWEET SPOT ONLY, CORKSCREW SHOTS":"")+
     (m==="classic"?"  //  CLASSIC: NO EFFECTS - THE ONLY THING THAT GETS HARDER IS THE AI'S SPEED":"")+
-    (m==="daily"?"  //  DAILY: TODAY'S SUBSTRATE IS "+ERAS[DAILY_ERA%5]+" - IT IS ACTIVE FROM THE FIRST SERVE - YOUR BEST SCORE TODAY IS SAVED":""))}
+    (m==="daily"?"  //  DAILY: TODAY'S SUBSTRATE IS "+ERAS[DAILY_ERA%5]+" - IT IS ACTIVE FROM THE FIRST SERVE - YOUR BEST SCORE TODAY IS SAVED":"")+
+    "")}
 document.getElementById("mN").addEventListener("click",()=>pickMode("normal"));
 function goMenu(){                                               // back to the main menu from anywhere (R key / MENU button); a run in progress is banked first
   if(st.state==="select")return;
   if(MODE==="online")netLeave();
   if(st.score>0&&st.state!=="over")endRun(st.level);
-  MODE="normal";st.score=0;st.level=0;st.lives=LIVES0;st.state="select";
+  MODE="normal";setBoss(false);fmOn=false;fymShow(false);BOSS.dead=false;st.score=0;st.level=0;st.lives=LIVES0;st.state="select";
   balls=[];extraScored=0;breach=null;gefGlitches=[];stamina=1;held=false;shiftHeld=false;
   RUN.ace=RUN.sweet=RUN.vol=RUN.spd=0;
   if(MU.secret){MU.secret=false;MU.mel=null;MU.bar=0;MU.s=0;np();musicStop();musicStart()}else if(cMode&&!cForce){cSwitch(false)}
@@ -376,6 +384,7 @@ function padFromScreen(){if(pad.mx===undefined)return;const c=Math.cos(vRot),s=M
   x=((pad.mx-cx)*c+(pad.my-cy)*s)/vScl,y=(-(pad.mx-cx)*s+(pad.my-cy)*c)/vScl;pad.rx=x/(k*ASP);pad.ry=y/k}
 cv.addEventListener("pointermove",e=>{touchPaddle(e,cv.getBoundingClientRect());psyMove(e)});
 function toServe(){
+  if(st.level===9&&MODE!=="classic"){setBoss(true);syncField();debris=[];shocks=[];flashA=0;shake=0;bossStart();return}   // STAGE 10: THE CYLINDER
   RUN.vol=0;RUN.spd=0;reset();st.state="serve";st.armAt=performance.now()+700;syncField();
   show("SWIPE THE PADDLE THROUGH THE BALL TO SERVE","CENTRE OF THE PADDLE = HOT ZONE: MORE CURVE, MORE SPEED",true)}
 cv.addEventListener("pointerdown",e=>{
@@ -384,7 +393,7 @@ cv.addEventListener("pointerdown",e=>{
   if(e.button===0&&e.pointerType!=="touch")held=true;
   musicStart();psyClick();
   if(MODE==="online"){netClick();return}
-  if(st.state==="over"){st.score=0;st.level=0;st.lives=LIVES0}
+  if(st.state==="over"){st.score=0;st.level=0;st.lives=LIVES0;setBoss(false);fmOn=false;fymShow(false)}
   if(st.state==="ready"||st.state==="over"){st.first=true;hud();toServe()}});
 
 /* ---------- level 10: the walls explode away and the field grows ---------- */
@@ -615,7 +624,7 @@ function afterPoint(){
   {const p0=plvlOf(SV.total);SV.total+=st.score-sc0;const p1=plvlOf(SV.total);updPL();if(p1>p0)setTimeout(()=>flash("PLAYER LEVEL UP: "+p1,"#ff66cc"),1300)}
   svSave();
   tn(880,.12,"sine",.06);tn(1320,.2,"sine",.05);pulse("rgba("+TL+",.35)");
-  let extra=0;for(let k=0;k<jump;k++){st.level++;if(st.level%2===0&&st.lives<LIVES0){st.lives++;extra++}}   // +1 life at levels 3, 5, 7, 9
+  let extra=0;for(let k=0;k<jump;k++){st.level++;if(st.level%2===0&&st.lives<LIVES0){st.lives++;extra++}if(st.level===9&&MODE!=="classic")break}   // an ace can't skip the cylinder   // +1 life at levels 3, 5, 7, 9
   if(lvl()<9||ace&&lvl()===10){flash((ace?"ACE!   SKIPPING TO LEVEL ":"OPPONENT DEFEATED   LEVEL ")+(1+st.level)+(extraScored?"   +"+extraScored+" MULTIBALL SKIP"+(extraScored>1?"S":""):"")+(extra?"   +"+extra+" LIFE":"")+(bonus>30?"   CURVE +"+bonus:"")+bt+(ace&&RUN.ace>1?"   ACE STREAK x"+RUN.ace:""),ace?"#ffb000":TLH)}
   if(!(lvl()<9||ace&&lvl()===10)&&(bt||(ace&&RUN.ace>1)))flash((bt+(ace&&RUN.ace>1?"   ACE STREAK x"+RUN.ace:"")).trim(),"#33d6ff");
   if(lvl()>=2&&lvl()!==9)levelQuote();
@@ -649,6 +658,8 @@ function step(dt){
   if(lvl()>=5&&(qNext-=dt)<=0){qNext=20+Math.random()*15;levelQuote()}   // the deeper you go, the more it talks
   if(gHeld&&performance.now()-gDown>1600&&st.state==="serve"&&st.first&&!MU.secret)unlockSecret();
   if(MODE==="online")return netStep(dt);
+  if(fmOn){fmStep(dt);return}
+  if(bossOn){bossStep(dt);return}
   const h=PHe()+BR,aiShapeNow=MODE==="gef"?aiShape.kind:"rect";
   if(MODE==="gef"){                                              // GEF MODE: paddle mutation, wall-breach ticks, and the multiball volley
     aiShape.hold-=dt;if(aiShape.hold<=0){aiShape.kind=SHAPES[Math.floor(Math.random()*SHAPES.length)];aiShape.hold=3.5+Math.random()*5}
@@ -1102,6 +1113,257 @@ function paddle(z,x,y,body,edge,t,shape){                       // paddle as a 3
   mino(x-hz,y-hz,x+hz,y+hz,z,TC.a,mixc(TC.a,WHITE,.6),.75+.25*pu);
   const q=P(x,y,z);ctx.lineWidth=1;ctx.strokeStyle=rgb(WHITE,.55);ctx.beginPath();ctx.moveTo(q[0]-4,q[1]);ctx.lineTo(q[0]+4,q[1]);ctx.moveTo(q[0],q[1]-4);ctx.lineTo(q[0],q[1]+4);ctx.stroke()}
 
+
+/* ---------- STAGE 10: THE CYLINDER BOSS: the rotating tile cylinder ---------- */
+const MSP0=10,CP0=3,B_COLS=8,B_ROWS=4,B_HP=3;                         // tweak: COMPUTE POINTS (wire hits that destroy the cylinder), panels = columns x rows, hits per panel
+const B_RET_MIN=.6,B_RET_MAX=1.6,B_RET_K=1.3;                                   // speed of a ball ricocheting off the cylinder (tweak)
+const B_SPD0=.28,B_SPDK=.03,B_SPDP=.06,B_SPDMAX=1.2;                // ball speed: opening speed, gain per return, gain per phase, cap (tweak these)
+const BZC=1.0,BD=0.14,TAU=Math.PI*2;                             // cylinder centre depth, and how far its curved face bulges toward you
+const BOSS={tiles:[],rot:0,dir:1,phase:1,msp:MSP0,fireT:2.5,fired:0,mindT:3,balls:[],pause:0,spd:B_SPD0,cp:CP0,redT:0,hitCool:0,dead:false};
+const bossRc=()=>F,bossH=()=>F*.92;
+const bossZ=x=>BZC-BD*Math.sqrt(Math.max(0,1-(x/bossRc())**2));  // z of the cylinder's front surface at sideways position x
+function bossArt(seed){                                           // the circuit board behind a panel: traces, pads, a chip, and always at least one exposed wire
+  const r=rng(seed*7919+13),a=[];
+  for(let i=0;i<5;i++){
+    let u=Math.floor(r()*5)/4,v=Math.floor(r()*5)/4;const pts=[[u,v]];
+    for(let k=0;k<2+Math.floor(r()*2);k++){
+      const horiz=r()<.5,len=(1+Math.floor(r()*2))/4*(r()<.5?-1:1);if(horiz)u=clamp(u+len,0,1);else v=clamp(v+len,0,1);pts.push([u,v]);
+      if(r()<.4){const d=.125*(r()<.5?-1:1);u=clamp(u+d,0,1);v=clamp(v+d,0,1);pts.push([u,v])}}
+    a.push({t:"trace",pts,exposed:i===0||r()<.3})}
+  a.push({t:"chip",u:.28+r()*.3,v:.28+r()*.28,w:.2+r()*.14,h:.16+r()*.1});
+  for(let i=0;i<5;i++)a.push({t:"pad",u:r(),v:r()});
+  return a}
+function bossBuild(){
+  BOSS.tiles=[];for(let c=0;c<B_COLS;c++){const col=[];for(let r=0;r<B_ROWS;r++)col.push({hp:B_HP,mind:false,art:bossArt(c*31+r*17+7)});BOSS.tiles.push(col)}
+  BOSS.mindT=3}
+function bossAlive(){let n=0;for(const col of BOSS.tiles)for(const t of col)if(t.hp>0&&!t.mind)n++;return n}
+function bossMindCount(){let n=0;for(const col of BOSS.tiles)for(const t of col)if(t.mind&&t.hp>0)n++;return n}
+function bossSpawnMind(){                                         // MIND SQUARE: a solid, flashing panel; hit it to restore mental stress points
+  const c=[];BOSS.tiles.forEach((col,ci)=>col.forEach((t,ri)=>{if(t.hp>0&&!t.mind)c.push(t)}));
+  if(c.length>3){c[Math.floor(Math.random()*c.length)].mind=true}}
+function bossSync(){st.lives=Math.max(1,Math.ceil(BOSS.msp/2));hud()}   // the psych meters read st.lives
+function bossStart(){
+  BOSS.phase=1;BOSS.msp=MSP0;BOSS.rot=0;BOSS.dir=1;BOSS.fired=0;BOSS.balls=[];BOSS.fireT=2.5;BOSS.pause=1.2;BOSS.spd=B_SPD0;BOSS.cp=CP0;BOSS.redT=0;BOSS.hitCool=0;BOSS.dead=false;BOSS.clean=true;BOSS.rets=0;BOSS.lives0=st.lives;debris=[];
+  bossBuild();st.state="serve";RUN.sweet=0;rings=[];bossSync();
+  BOSS.sv={x:0,y:0,z:.03,touch:null};st.armAt=performance.now()+700;                  // YOU serve the opening ball
+  show("SWIPE THE PADDLE THROUGH THE BALL TO SERVE","BREAK PANELS (PERFECT HIT = 3 DAMAGE), THEN HIT THE EXPOSED WIRES BEHIND THEM",true);
+  flash("CYLINDER ONLINE  -  "+CP0+" COMPUTE POINTS","#ff4455");tn(80,.7,"sawtooth",.1,30)}
+function bossServeStep(){
+  const sv=BOSS.sv;if(!sv||performance.now()<st.armAt)return;
+  const dx=sv.x-pad.x,dy=sv.y-pad.y,h=PHe()+BR,over=Math.abs(dx)<h&&Math.abs(dy)<h,d=Math.hypot(dx,dy);
+  if(over){if(!sv.touch||d<sv.touch.d)sv.touch={d,dx,dy,vx:pad.vx,vy:pad.vy};else if(d>sv.touch.d+.015)bossDoServe()}
+  else if(sv.touch)bossDoServe()}
+function bossDoServe(){
+  const t=BOSS.sv.touch;BOSS.sv.touch=null;if(Math.hypot(t.vx,t.vy)<SERVE_MIN)return;      // too gentle: not a swipe
+  const hot=Math.abs(t.dx)<HZ()&&Math.abs(t.dy)<HZ(),gain=2.1*(hot?1.8:1),sp=.34*(hot?1.1:1)*(1+Math.min(.12,Math.hypot(t.vx,t.vy)*.025)),cu=()=>hot?(Math.random()<.5?-1:1)*1.1:0;
+  BOSS.balls.push({x:BOSS.sv.x,y:BOSS.sv.y,z:.03,vx:clamp(t.vx,-2,2)*.25+t.dx*1.2,vy:clamp(t.vy,-2,2)*.25+t.dy*1.2,vz:sp,
+    sx:clamp(t.vx*gain+cu(),-7,7),sy:clamp(t.vy*gain+cu(),-7,7),tr:[],perfect:hot});
+  rings.push({x:BOSS.sv.x,y:BOSS.sv.y,z:0,t:0,hot});tink(hot);if(hot)flash("PERFECT SERVE  -  NEXT TILE HIT COUNTS x3","#ffb000");
+  st.state="play";BOSS.pause=3.5;show("")}
+function bossOver(){
+  st.state="over";BOSS.balls=[];psyEvent("over");SV.bossPhase=Math.max(SV.bossPhase||0,BOSS.phase);
+  show("MENTAL STRESS POINTS DEPLETED","THE CYLINDER HOLDS STAGE 10   FINAL SCORE "+st.score+" - CLICK TO RESTART"+endRun(st.level))}
+function bossFire(){                                              // ONE ball at a time: the cylinder spits out a single ball (multiball is off)
+  if(BOSS.balls.length)return;
+  const Rc=bossRc(),H=bossH(),spd=BOSS.spd,th=(Math.random()*2-1)*1.1,x=Rc*Math.sin(th),y=(Math.random()*2-1)*H*.8,z=bossZ(x)-.01,T=z/spd,
+    tx=clamp(pad.x+(Math.random()*2-1)*.9*F,-F,F),ty=clamp(pad.y+(Math.random()*2-1)*.9*F,-F,F),cv2=Math.min(2.5,(BOSS.phase-1)*1+BOSS.fired*.03);
+  BOSS.balls.push({x,y,z,vx:clamp((tx-x)/T,-2.2,2.2),vy:clamp((ty-y)/T,-2.2,2.2),vz:-spd,sx:(Math.random()*2-1)*cv2,sy:(Math.random()*2-1)*cv2,tr:[],perfect:false});
+  BOSS.fired++;tn(200+Math.random()*80,.18,"sawtooth",.05,520)}
+function bossWireHit(b){                                          // the ball hit the exposed circuit board
+  if(BOSS.hitCool>0)return;
+  BOSS.hitCool=.9;BOSS.redT=.7;BOSS.cp--;st.score+=500;
+  tn(90,.5,"sawtooth",.12,40);tn(1800,.25,"square",.06,200);pulse("rgba(255,40,50,.5)");
+  if(BOSS.cp<=0){bossWin();return}
+  flash("EXPOSED WIRES HIT  -  CYLINDER LOSES 1 COMPUTE POINT  -  "+BOSS.cp+" LEFT","#ff4455");hud()}
+function bossWin(){                                               // 0 compute points: the cylinder blows apart, and that carries you on
+  BOSS.dead=true;BOSS.balls=[];st.state="bossdead";st.score+=10000;SV.bossWins=(SV.bossWins||0)+1;
+  const Rc=bossRc(),H=bossH();
+  for(let i=0;i<220;i++){const a=Math.random()*TAU,y=(Math.random()*2-1)*H,sp=1.2+Math.random()*3;
+    debris.push({x:Rc*Math.sin(a),y,z:BZC-BD*Math.cos(a),vx:Math.sin(a)*sp+(Math.random()-.5),vy:(y/H)*sp*.6+(Math.random()-.5)*1.5,vz:-Math.cos(a)*sp*.5+(Math.random()-.5)*1.2,
+      r:Math.random()*6.28,rv:(Math.random()-.5)*12,len:.1+Math.random()*.3,t:0,life:1.6+Math.random()*1.4,h:Math.random()})}
+  tn(50,1.3,"sawtooth",.16,14);tn(140,.9,"square",.1,40);setTimeout(()=>tn(70,.8,"sawtooth",.12,20),250);hud();svSave();
+  flash("CYLINDER DESTROYED","#ffb000");setTimeout(bossAfter,2800)}
+function bossAfter(){                                             // the explosion has played out: on to stage 11 (or the secret stage)
+  if(!(BOSS.dead&&st.state==="bossdead"))return;
+  const secret=BOSS.clean&&BOSS.rets>0;BOSS.dead=false;setBoss(false);debris=[];shocks=[];
+  st.lives=BOSS.lives0;st.level=10;if(st.lives<LIVES0)st.lives++;
+  if(secret){fmStart();return}
+  flash("STAGE 11   -   THE FIELD IS UNBOUND","#33ff77");hud();toServe()}
+function bossHitTile(b){                                          // a returned ball reaches the cylinder face
+  const Rc=bossRc(),H=bossH(),th=Math.asin(clamp(b.x/Rc,-1,1)),al=(((th-BOSS.rot)%TAU)+TAU)%TAU,col=Math.floor(al/(TAU/B_COLS))%B_COLS,row=Math.floor((b.y+H)/(2*H)*B_ROWS);
+  if(row<0||row>=B_ROWS)return false;
+  const tile=BOSS.tiles[col][row];if(!tile)return false;
+  const dmg=b.perfect?B_HP:1;
+  if(tile.hp<=0&&!tile.mind){bossWireHit(b);if(BOSS.dead)return true}   // a broken panel: you hit the exposed wires
+  else if(tile.mind){                                                  // MIND SQUARE
+    tile.hp=0;tile.mind=false;const before=BOSS.msp;BOSS.msp=Math.min(MSP0,BOSS.msp+2);bossSync();BOSS.mindT=5+Math.random()*4;
+    flash(BOSS.msp>before?"MIND SQUARE  +"+(BOSS.msp-before)+" MENTAL STRESS POINTS":"MIND SQUARE  MENTAL STRESS AT MAXIMUM","#ff66cc");
+    PSY.v.stress=Math.max(0,PSY.v.stress-.25);PSY.v.frust=Math.max(0,PSY.v.frust-.2);
+    [660,880,1320].forEach((f,i)=>setTimeout(()=>tn(f,.14,"sine",.06),i*70));pulse("rgba(255,102,204,.4)");st.score+=100*BOSS.phase}
+  else{
+    tile.hp-=dmg;st.score+=40*BOSS.phase*dmg;BOSS.hits=(BOSS.hits||0)+1;
+    if(tile.hp<=0){st.score+=200*BOSS.phase;tn(520,.1,"square",.05,160);shake=Math.max(shake,.15);flash(b.perfect?"PERFECT  TILE DESTROYED":"TILE DESTROYED","#ffb000")}
+    else tn(300+tile.hp*120,.07,"square",.04,200);
+    if(b.perfect)flash("PERFECT  x3 DAMAGE","#ffb000")}
+  rings.push({x:b.x,y:b.y,z:b.z,t:0,hot:b.perfect});
+  const nx=Math.sin(th),nz=-Math.cos(th),dot=b.vx*nx+b.vz*nz;     // bounce off the curved face
+  b.vx-=2*dot*nx;const inSp=Math.abs(b.vz);
+  b.vz=-clamp(inSp*B_RET_K,B_RET_MIN,B_RET_MAX);b.vx=clamp(b.vx,-1.5,1.5);b.vy=clamp(b.vy,-1.5,1.5);   // ricochet: comes back at the speed you hit it in at, with no spin
+  b.z=bossZ(b.x)-.005;b.perfect=false;b.sx=0;b.sy=0;hud();return true}  // no deceleration: a returned ball keeps its sideways speed and gains forward speed
+function bossStep(dt){
+  BOSS.redT=Math.max(0,BOSS.redT-dt);BOSS.hitCool=Math.max(0,BOSS.hitCool-dt);
+  if(st.state==="serve"){BOSS.rot+=BOSS.dir*.2*dt;bossServeStep();return}
+  if(st.state!=="play")return;
+  BOSS.t=(BOSS.t||0)+dt;
+  BOSS.rot+=BOSS.dir*(.32+.07*(BOSS.phase-1))*dt;if(Math.random()<dt*.07)BOSS.dir*=-1;   // it turns, and now and then reverses
+  if(BOSS.pause>0)BOSS.pause-=dt;
+  else if(!BOSS.balls.length)bossFire()
+  if((BOSS.mindT-=dt)<=0&&bossMindCount()<2+(BOSS.phase>2?1:0)){bossSpawnMind();BOSS.mindT=6+Math.random()*4}
+  const Rc=bossRc();
+  for(let i=BOSS.balls.length-1;i>=0;i--){
+    const b=BOSS.balls[i];
+    b.vx=clamp(b.vx+b.sx*dt,-4,4);b.vy=clamp(b.vy+b.sy*dt,-4,4);
+    b.x+=b.vx*dt;b.y+=b.vy*dt;b.z+=b.vz*dt;
+    if(b.x>F){b.x=F;b.vx=-b.vx;b.sx=-b.sx*.6;bounceSnd()}else if(b.x<-F){b.x=-F;b.vx=-b.vx;b.sx=-b.sx*.6;bounceSnd()}
+    if(b.y>F){b.y=F;b.vy=-b.vy;b.sy=-b.sy*.6;bounceSnd()}else if(b.y<-F){b.y=-F;b.vy=-b.vy;b.sy=-b.sy*.6;bounceSnd()}
+    b.tr.push([b.x,b.y,b.z]);if(b.tr.length>14)b.tr.shift();
+    if(b.vz>0){
+      if(Math.abs(b.x)<Rc*.999&&b.z>=bossZ(b.x)){if(!bossHitTile(b)&&b.z>=BZC+.05){b.z=BZC+.05;b.vz=-Math.abs(b.vz)}if(BOSS.dead)return}
+      else if(b.z>=BZC+.05){b.z=BZC+.05;b.vz=-Math.abs(b.vz)}}                 // holes / the gap above: it bounces off the back of the stage
+    else if(b.z<=0){
+      const dx=b.x-pad.x,dy=b.y-pad.y,h=PHe()+BR;
+      if(Math.abs(dx)<h&&Math.abs(dy)<h){                                      // you returned it
+        const hot=Math.abs(dx)<HZ()&&Math.abs(dy)<HZ(),gain=2.1*(hot?1.8:1),sp=Math.max(.3,Math.abs(b.vz))*(hot?1.1:1.0);
+        BOSS.spd=Math.min(B_SPDMAX,BOSS.spd+B_SPDK);b.vz=BOSS.spd*(hot?1.1:1);   // every return speeds the ball up
+        b.vx=b.vx*.4+dx*1.6;b.vy=b.vy*.4+dy*1.6;
+        b.sx=clamp(pad.vx*gain+(hot?(Math.random()<.5?-1:1)*1.4:0),-7,7);b.sy=clamp(pad.vy*gain+(hot?(Math.random()<.5?-1:1)*1.4:0),-7,7);
+        b.z=0;b.perfect=hot;rings.push({x:b.x,y:b.y,z:0,t:0,hot});tink(hot);
+        if(hot){pulse("rgba(255,176,0,.35)");RUN.sweet++;if(RUN.sweet>RUN.bestSweet)RUN.bestSweet=RUN.sweet;if(RUN.sweet>SV.bestSweet)SV.bestSweet=RUN.sweet;flash("PERFECT HIT  -  NEXT TILE HIT COUNTS x3","#ffb000")}
+        else{RUN.sweet=0;BOSS.clean=false}
+        BOSS.rets++;PSY.rally++}
+      else{                                                                    // it got past you
+        BOSS.balls.splice(i,1);BOSS.msp--;BOSS.clean=false;RUN.sweet=0;bossSync();psyEvent("miss");shake=Math.max(shake,.5);
+        tn(130,.4,"sawtooth",.07,60);pulse("rgba(255,68,85,.45)");flash("MENTAL STRESS POINT LOST  -  "+BOSS.msp+" LEFT","#ff4455");
+        if(BOSS.msp<=0){bossOver();return}BOSS.spd=Math.max(B_SPD0,BOSS.spd*.85);bossFire()}}}
+}
+function drawBoard(pts,tile,A0,A1,y0,y1,shade,red,t){            // the terminal-green circuit board under a broken panel
+  const Rc=bossRc(),lim=Math.PI/2*.98,base=red>.05?"255,40,50":"51,255,119",
+    pt=(u,v)=>{const a=A0+u*(A1-A0);return a>-lim&&a<lim?P(Rc*Math.sin(a),y0+v*(y1-y0),BZC-BD*Math.cos(a)):null};
+  ctx.lineWidth=1;strokePoly(pts,"rgba("+base+","+(.4*shade)+")",red>.05?"rgba(80,0,8,.95)":"rgba(0,28,12,.95)");ctx.lineCap="round";
+  for(const it of tile.art){
+    if(it.t==="trace"){
+      const pp=it.pts.map(([u,v])=>pt(u,v));if(pp.some(q=>!q))continue;
+      ctx.beginPath();pp.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));
+      if(it.exposed){const fl=.6+.4*Math.sin(t*14+it.pts[0][0]*9);ctx.shadowColor=red>.05?"#ff4455":"#ffb000";ctx.shadowBlur=12;
+        ctx.strokeStyle=red>.05?"rgba(255,210,210,"+fl+")":"rgba(255,176,0,"+fl+")";ctx.lineWidth=3}
+      else{ctx.shadowBlur=0;ctx.strokeStyle="rgba("+base+","+(.6*shade)+")";ctx.lineWidth=1.3}
+      ctx.stroke();ctx.shadowBlur=0}
+    else if(it.t==="pad"){const q=pt(it.u,it.v);if(!q)continue;ctx.fillStyle="rgba("+base+","+(.75*shade)+")";ctx.fillRect(q[0]-2.5,q[1]-2.5,5,5)}
+    else{
+      const c0=pt(it.u,it.v),c1=pt(it.u+it.w,it.v),c2=pt(it.u+it.w,it.v+it.h),c3=pt(it.u,it.v+it.h);if(!(c0&&c1&&c2&&c3))continue;
+      ctx.lineWidth=1;strokePoly([c0,c1,c2,c3],"rgba("+base+","+(.85*shade)+")","rgba("+base+","+(.14*shade)+")");
+      ctx.beginPath();for(let k=1;k<4;k++){const f=k/4,a=[c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f],b2=[c3[0]+(c2[0]-c3[0])*f,c3[1]+(c2[1]-c3[1])*f];
+        ctx.moveTo(a[0],a[1]);ctx.lineTo(a[0],a[1]-3);ctx.moveTo(b2[0],b2[1]);ctx.lineTo(b2[0],b2[1]+3)}ctx.stroke()}}}
+function drawBoss(t,dt){
+  const Rc=bossRc(),H=bossH(),dth=TAU/B_COLS,rowH=2*H/B_ROWS;
+  ctx.save();ctx.lineJoin="round";
+  for(const yy of (BOSS.dead?[]:[-H,H])){ctx.lineWidth=1.5;                                   // the cylinder's rims
+    for(let k=0;k<64;k++){const a0=k/64*TAU,a1=(k+1)/64*TAU,front=Math.cos((a0+a1)/2)>0,p=P(Rc*Math.sin(a0),yy,BZC-BD*Math.cos(a0)),q=P(Rc*Math.sin(a1),yy,BZC-BD*Math.cos(a1));
+      ctx.strokeStyle=front?"rgba(255,68,85,.8)":"rgba(255,68,85,.18)";ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.stroke()}}
+  const red=BOSS.redT>0?(.5+.5*Math.sin(t*38))*Math.min(1,BOSS.redT*3):0;                // the whole cylinder flashes red when its wires are hit
+  for(let c=0;c<(BOSS.dead?0:B_COLS);c++){
+    const thF=(((c+.5)*dth+BOSS.rot+Math.PI)%TAU+TAU)%TAU-Math.PI,A0=thF-dth*.46,A1=thF+dth*.46;
+    const a0=Math.max(A0,-Math.PI/2),a1=Math.min(A1,Math.PI/2);if(a1-a0<.04)continue;
+    const shade=.3+.7*Math.cos(clamp(thF,-Math.PI/2,Math.PI/2));
+    for(let r=0;r<B_ROWS;r++){
+      const tile=BOSS.tiles[c][r],y0=-H+r*rowH+rowH*.04,y1=y0+rowH*.92;
+      const pts=[P(Rc*Math.sin(a0),y0,BZC-BD*Math.cos(a0)),P(Rc*Math.sin(a1),y0,BZC-BD*Math.cos(a1)),P(Rc*Math.sin(a1),y1,BZC-BD*Math.cos(a1)),P(Rc*Math.sin(a0),y1,BZC-BD*Math.cos(a0))];
+      if(tile.hp<=0&&!tile.mind){drawBoard(pts,tile,A0,A1,y0,y1,shade,red,t);continue}   // a broken panel shows the circuit board underneath
+      if(tile.mind){
+        const fl=.5+.5*Math.sin(t*12+c*1.7+r);ctx.shadowColor="#ff66cc";ctx.shadowBlur=18;ctx.lineWidth=2;
+        strokePoly(pts,"rgba(255,255,255,"+(.7+.3*fl)+")","hsla("+(300+60*fl)+",100%,"+(55+25*fl)+"%,"+(.8+.2*fl)+")");ctx.shadowBlur=0;continue}
+      const col=red>.05?"255,40,50":tile.hp>=3?"51,255,119":tile.hp===2?"255,176,0":"255,68,85";
+      ctx.lineWidth=1.2;strokePoly(pts,"rgba("+col+","+(.85*shade)+")","rgba("+col+","+(.2+.22*shade+.3*red)+")")}}
+  if(st.state==="serve"&&BOSS.sv){const sv=BOSS.sv,p=P(sv.x,sv.y,sv.z),r=BR*(A/F)*sc(sv.z),pu=.5+.5*Math.sin(t*5);   // the ball waits on the tee
+    ctx.strokeStyle="rgba(255,176,0,"+(.4+.5*pu)+")";ctx.lineWidth=2;ctx.beginPath();ctx.arc(p[0],p[1],r+8+4*pu,0,7);ctx.stroke();
+    ctx.shadowColor="#33ff77";ctx.shadowBlur=18;ctx.fillStyle="#bfffd5";ctx.beginPath();ctx.arc(p[0],p[1],r,0,7);ctx.fill();ctx.shadowBlur=0}
+  const live=BOSS.balls.slice().sort((a,b)=>b.z-a.z);
+  let near=null;for(const b of BOSS.balls)if(b.vz<0&&(!near||b.z<near.z))near=b;
+  if(near){ctx.lineWidth=2;rect(near.z,0,0,F,"rgba(255,176,0,.35)")}
+  for(const b of live){
+    const out=b.vz>0,col=b.perfect?"#ffb000":out?"#bfffd5":"#ff8899",glow=b.perfect?"#ffb000":out?"#33ff77":"#ff4455",rgb=b.perfect?"255,176,0":out?"51,255,119":"255,68,85";
+    for(let i=0;i<b.tr.length;i++){const q=b.tr[i],p=P(q[0],q[1],q[2]);ctx.fillStyle="rgba("+rgb+","+(i/b.tr.length*.35)+")";ctx.beginPath();ctx.arc(p[0],p[1],BR*(A/F)*sc(q[2])*.8,0,7);ctx.fill()}
+    const p=P(b.x,b.y,b.z);ctx.shadowColor=glow;ctx.shadowBlur=b.perfect?26:16;ctx.fillStyle=col;ctx.beginPath();ctx.arc(p[0],p[1],BR*(A/F)*sc(b.z),0,7);ctx.fill();ctx.shadowBlur=0;
+    if(!out){const q=P(b.x,b.y,0),k=clamp(1-b.z,0,1),r=BR*(A/F),on=Math.abs(b.x-pad.x)<PHe()+BR&&Math.abs(b.y-pad.y)<PHe()+BR;   // landing reticle
+      ctx.strokeStyle=(on?"rgba(51,255,119,":"rgba(255,68,85,")+(.12+.45*k*k)+")";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(q[0],q[1],r,0,7);ctx.stroke()}}
+  paddle(0,pad.x,pad.y,TC.m,TC.l,t,"rect");
+  ctx.restore()}
+/* ---------- SECRET STAGE: FREE YOUR MIND (beat the cylinder with every return a sweet spot and not one miss) ---------- */
+const FM={balls:[],q:[],t:0,ret:0,end:0,tx:0,ty:0};
+function fmStart(){
+  fmOn=true;st.state="play";FM.balls=[];FM.t=0;FM.ret=0;FM.end=0;FM.tx=0;FM.ty=0;
+  FM.q=[];let arr=1.8;for(let k=0;k<30;k++){const T=.95+Math.random()*.55;arr+=.34+Math.random()*.46;FM.q.push({at:arr-T,T})}   // arrival times are spaced out, so no two balls reach you together
+  FM.q.sort((a,b)=>a.at-b.at);
+  ai.x=0;ai.y=0;reset();show("");fymShow(true);hud();
+  [110,165,220,330].forEach((f,i)=>setTimeout(()=>tn(f,.5,"sawtooth",.09,f*2),i*140))}
+function fmSpawn(q){
+  FM.tx=clamp(FM.tx+(Math.random()*2-1)*.9*F,-F*.85,F*.85);FM.ty=clamp(FM.ty+(Math.random()*2-1)*.9*F,-F*.85,F*.85);
+  const x=clamp(ai.x+(Math.random()*2-1)*.3,-F,F),y=clamp(ai.y+(Math.random()*2-1)*.3,-F,F),z=.97;
+  FM.balls.push({x,y,z,vx:(FM.tx-x)/q.T,vy:(FM.ty-y)/q.T,vz:-z/q.T,tr:[],ret:false});tn(240+Math.random()*120,.08,"square",.03,120)}
+function fmFinish(){
+  fmOn=false;fymShow(false);FM.balls=[];SV.freed=(SV.freed||0)+1;SV.bestFreed=Math.max(SV.bestFreed||0,FM.ret);svSave();
+  flash("MIND FREED   -   "+FM.ret+" OF 30 RETURNED   -   LEVEL "+(1+st.level),"#ff66cc");syncField();hud();toServe()}
+function fmStep(dt){
+  FM.t+=dt;
+  while(FM.q.length&&FM.q[0].at<=FM.t)fmSpawn(FM.q.shift());
+  let tg=null;for(const b of FM.balls)if(b.vz>0&&(!tg||b.z>tg.z))tg=b;                  // the AI paddle: it tries, slowly and badly
+  const sp=.5*dt,wx=Math.sin(FM.t*3.1)*.35,wy=Math.cos(FM.t*2.3)*.35;
+  ai.x+=clamp((tg?tg.x+wx:0)-ai.x,-sp,sp);ai.y+=clamp((tg?tg.y+wy:0)-ai.y,-sp,sp);
+  const h=PHe()+BR;
+  for(let i=FM.balls.length-1;i>=0;i--){
+    const b=FM.balls[i];b.x+=b.vx*dt;b.y+=b.vy*dt;b.z+=b.vz*dt;
+    if(b.x>F){b.x=F;b.vx=-b.vx}else if(b.x<-F){b.x=-F;b.vx=-b.vx}
+    if(b.y>F){b.y=F;b.vy=-b.vy}else if(b.y<-F){b.y=-F;b.vy=-b.vy}
+    b.tr.push([b.x,b.y,b.z]);if(b.tr.length>12)b.tr.shift();
+    if(b.vz<0&&b.z<=0){
+      const dx=b.x-pad.x,dy=b.y-pad.y;
+      if(Math.abs(dx)<h&&Math.abs(dy)<h){                                               // you bounced it back: skip a level
+        const hot=Math.abs(dx)<HZ()&&Math.abs(dy)<HZ();
+        b.vz=.95*(hot?1.12:1);b.vx=b.vx*.4+dx*1.6;b.vy=b.vy*.4+dy*1.6;b.z=0;b.ret=true;
+        FM.ret++;if(st.level<99){st.level++;if(st.level%2===0&&st.lives<LIVES0)st.lives++}
+        st.score+=100*(1+lvl())*(hot?2:1);rings.push({x:b.x,y:b.y,z:0,t:0,hot});tink(hot);
+        flash("LEVEL "+(1+st.level)+"   "+FM.ret+" RETURNED","#ff66cc");hud()}
+      else{FM.balls.splice(i,1);tn(130,.15,"sawtooth",.04,70)}}                          // a missed ball here costs nothing
+    else if(b.vz>0&&b.z>=1){
+      const dx=b.x-ai.x,dy=b.y-ai.y;
+      if(Math.abs(dx)<h&&Math.abs(dy)<h&&Math.random()<.55){                          // the AI very occasionally gets one back
+        const tx=clamp(pad.x+(Math.random()*2-1)*F*.7,-F,F),ty=clamp(pad.y+(Math.random()*2-1)*F*.7,-F,F),T=1/(.6+Math.random()*.25);
+        b.z=1;b.vz=-1/T;b.vx=(tx-b.x)/T;b.vy=(ty-b.y)/T;b.ret=false;rings.push({x:b.x,y:b.y,z:1,t:0,hot:false});tn(300,.08,"square",.03,200)}
+      else{rings.push({x:b.x,y:b.y,z:1,t:0,hot:false});FM.balls.splice(i,1);tn(90,.1,"triangle",.04,50)}}}
+  if(!FM.q.length&&!FM.balls.length){FM.end+=dt;if(FM.end>.9)fmFinish()}}
+function drawFM(t){
+  paddle(1,ai.x,ai.y,TC.w,mixc(TC.w,WHITE,.55),t,"rect");
+  const live=FM.balls.slice().sort((a,b)=>b.z-a.z),h=PHe()+BR;
+  for(const b of live){
+    const out=b.vz>0,rgb=out?"255,102,204":"51,255,119";
+    if(!out){const q=P(b.x,b.y,0),k=clamp(1-b.z,0,1),on=Math.abs(b.x-pad.x)<h&&Math.abs(b.y-pad.y)<h;
+      ctx.strokeStyle=(on?"rgba(51,255,119,":"rgba(255,68,85,")+(.08+.4*k*k)+")";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(q[0],q[1],BR*(A/F),0,7);ctx.stroke()}
+    for(let i=0;i<b.tr.length;i++){const q=b.tr[i],p=P(q[0],q[1],q[2]);ctx.fillStyle="rgba("+rgb+","+(i/b.tr.length*.35)+")";ctx.beginPath();ctx.arc(p[0],p[1],BR*(A/F)*sc(q[2])*.8,0,7);ctx.fill()}
+    const p=P(b.x,b.y,b.z);ctx.shadowColor=out?"#ff66cc":"#33ff77";ctx.shadowBlur=16;ctx.fillStyle=out?"#ffd1f0":"#bfffd5";ctx.beginPath();ctx.arc(p[0],p[1],BR*(A/F)*sc(b.z),0,7);ctx.fill();ctx.shadowBlur=0}
+  paddle(0,pad.x,pad.y,TC.m,TC.l,t,"rect")}
+function drawBossHud(t){
+  const n=MSP0,pw=18,gap=4,x0=(W-(n*(pw+gap)-gap))/2,y0=12,low=BOSS.msp<=3,blink=Math.floor(t*6)%2===0;
+  ctx.save();ctx.globalCompositeOperation="source-over";ctx.globalAlpha=.9;
+  ctx.fillStyle="rgba(0,16,6,.5)";ctx.fillRect(x0-10,y0-8,n*(pw+gap)+16,pw+52);ctx.strokeStyle="rgba(51,255,119,.35)";ctx.lineWidth=1;ctx.strokeRect(x0-10,y0-8,n*(pw+gap)+16,pw+52);
+  for(let i=0;i<n;i++){const on=i<BOSS.msp,c=BOSS.msp>6?"#33ff77":BOSS.msp>3?"#ffb000":(blink?"#ff4455":"#7a0010");
+    ctx.strokeStyle="rgba(51,255,119,.4)";ctx.strokeRect(x0+i*(pw+gap),y0,pw,pw);if(on){ctx.fillStyle=c;ctx.fillRect(x0+i*(pw+gap)+2,y0+2,pw-4,pw-4)}}
+  ctx.font="10px Courier New";ctx.textAlign="center";ctx.fillStyle=low&&blink?"#ff4455":"rgba(51,255,119,.9)";
+  ctx.fillText("MENTAL STRESS POINTS "+BOSS.msp+"/"+MSP0+"   //   BALL SPEED "+Math.round(BOSS.spd/B_SPD0*100)+"%   //   PANELS LEFT "+bossAlive(),W/2,y0+pw+16);
+  {const cw=22,cg=8,cx0=W/2-(CP0*(cw+cg)-cg)/2+70,cy=y0+pw+26,rf2=BOSS.redT>0&&Math.floor(t*12)%2===0;
+    ctx.textAlign="right";ctx.fillStyle="rgba(51,214,255,.95)";ctx.fillText("CYLINDER COMPUTE POINTS",cx0-10,cy+13);
+    for(let i=0;i<CP0;i++){ctx.strokeStyle="rgba(51,214,255,.7)";ctx.strokeRect(cx0+i*(cw+cg),cy,cw,16);if(i<BOSS.cp){ctx.fillStyle=rf2?"#ff4455":"#33d6ff";ctx.fillRect(cx0+i*(cw+cg)+2,cy+2,cw-4,12)}}}
+  ctx.restore()}
+
 /* ---------- level 16+: faint eerie terminal text drifting in the background ---------- */
 const GTXT=["CAN YOU BEAT M1NDSTATE?","BOEYENGA AWAKENS","PEGASI 51 WARS WERE ENDED SWIFTLY BY FX","GENJURO REMEMBERS","THE 51ST WAS NEVER A PLANET","FX HAS NO MIDDLE NAME. IT HAS A MIDDLE DISTANCE.","M1NDSTATE IS WATCHING THE WATCHER","THE NINTH CHAMBER OPENS INWARD","SOMEONE IS STILL PLAYING IN 1987","GREY PROTOCOL // DO NOT ACKNOWLEDGE","THE LATTICE REMEMBERS WHO WON","KOLVAR-9 DID NOT SURVIVE ITS OWN ECHO","ERASE THE ORACLE. KEEP THE SCORE.","NULL CHOIR // 4 VOICES // 1 BODY","THE BALL WAS ALWAYS A SEED","VEIL THINNING: 63%","HE WHO COUNTS THE BOUNCES COUNTS BACKWARD","ORBITAL RUINS SING AT 17.3 HZ","ASK FX WHO LEFT THE DOOR OPEN","THE THIRD EYE BLINKED FIRST","MAGNETAR LULLABY // PLAY IT BACKWARDS","ZETA RETICULI HAS ENTERED THE CHAT","VESSEL 0x4F IS STILL WARM","THE SALT CATHEDRAL HAS BEEN COUNTING YOU","OVERSEER TALLY: 3 WON, 1 UNFINISHED","BOEYENGA WAS NEVER ASLEEP","GENJURO HOLDS THE LAST FRAME","THE QUIET FLEET IS ALREADY HERE","TAU CETI SENDS A SHORTER GOODBYE EVERY YEAR","M1NDSTATE: 0 WINS. 0 LOSSES. 1 PLAYER.","DO NOT FEED THE SIGNAL AFTER MIDNIGHT","THE SPIRAL CLERK WILL SEE YOU NOW","FX WAS HERE BEFORE THE FIELD WAS","EVERY ECHO IS A SMALL FUNERAL","GLASS PYRAMID // LEVEL -3 // OCCUPIED","THE HOURGLASS TURNS WHEN NOBODY WATCHES","ANTARES KEEPS NO WITNESSES","WHO TAUGHT THE BALL TO COME BACK?","THE 4TH LAW OF MOTION IS CLASSIFIED","HOLLOW CROWN PROTOCOL ENGAGED","YOUR SHADOW SUBMITTED A SCORE LAST NIGHT","THE MOTHER LOGIC IS HUNGRY AND POLITE","NINE BELLS // NO TOWER","SEALED BY GENJURO. OPENED BY YOU."];
 let ghosts=[],gNext=6;
@@ -1125,9 +1387,10 @@ function drawGhosts(t,dt){
 function draw(t,dt){
   audioFrame(t,dt);themeStep(dt);quality(dt);
   ctx.fillStyle=rgb(TC.g0);ctx.fillRect(0,0,W,H);
-  ctx.save();if(shake>0.01)ctx.translate((Math.random()-.5)*shake*26,(Math.random()-.5)*shake*26);
+  ctx.save();if(shake>0.01&&!bossOn)ctx.translate((Math.random()-.5)*shake*26,(Math.random()-.5)*shake*26);
   drawFractal(t,dt);entities(t,dt);bgGames(t,dt);drawGhosts(t,dt);
-  ctx.save();ctx.translate(cx,cy);ctx.rotate(vRot);ctx.scale(vScl*(1+(MODE!=="classic"?MB.v*.012:0)),vScl*(1+(MODE!=="classic"?MB.v*.012:0)));ctx.translate(-cx,-cy);   // the play field (rotates at 30+)
+  if(bossOn){ctx.fillStyle=rgb(TC.g0,.76);ctx.fillRect(0,0,W,H)}   // boss mode: the background is pushed way down so the cylinder reads clearly
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(vRot);ctx.scale(vScl*(1+(MODE!=="classic"&&!bossOn?MB.v*.012:0)),vScl*(1+(MODE!=="classic"&&!bossOn?MB.v*.012:0)));ctx.translate(-cx,-cy);   // the play field (rotates at 30+)
   const lv=lvl(),beat=lv>=4?0.06*(0.5+0.5*Math.sin(t*(4+lv*0.5))):0;                     // the music beat moves things, it never flashes
   if(wa>0.02)well(wa,beat);                                       // the tunnel walls (they explode at level 10)
   else{                                                           // the new walls reform around the bigger field, back to front
@@ -1147,6 +1410,7 @@ function draw(t,dt){
     ctx.strokeStyle=rgb(mixc(TC.m,TC.l,d.h),1-d.t/d.life);ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(p[0]-dx,p[1]-dy);ctx.lineTo(p[0]+dx,p[1]+dy);ctx.stroke()});
   shocks.forEach(s=>{if(s.t<0)return;ctx.strokeStyle=rgb(TC.l,(1-s.t)*.7);ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,s.t*Math.max(W,H)*.8,0,7);ctx.stroke()});
+  if(bossOn)drawBoss(t,dt);else if(fmOn)drawFM(t);else{
   paddle(1,ai.x,ai.y,TC.w,mixc(TC.w,WHITE,.55),t,MODE==="gef"?aiShape.kind:"rect");
   if(MODE==="gef")drawBreach(t);
   const BRT=(tr,c)=>{ctx.save();ctx.globalCompositeOperation="lighter";                  // a ball's trail: a solid, tapering stream of light
@@ -1173,6 +1437,7 @@ function draw(t,dt){
     ctx.strokeStyle=rgb(on?mixc(TC.l,WHITE,.5):TC.w,.15+.55*k*k);ctx.lineWidth=1.5;
     ctx.beginPath();ctx.arc(q[0],q[1],r,0,7);ctx.moveTo(q[0]-r*1.6,q[1]);ctx.lineTo(q[0]-r*.6,q[1]);ctx.moveTo(q[0]+r*.6,q[1]);ctx.lineTo(q[0]+r*1.6,q[1]);
     ctx.moveTo(q[0],q[1]-r*1.6);ctx.lineTo(q[0],q[1]-r*.6);ctx.moveTo(q[0],q[1]+r*.6);ctx.lineTo(q[0],q[1]+r*1.6);ctx.stroke()}
+  }
   bursts.forEach(b=>drawBurst(b));
   rings.forEach(g=>{const p=P(g.x,g.y,g.z),k=g.t/.5;ctx.strokeStyle=rgb(g.hot?TC.a:TC.l,1-k);ctx.lineWidth=2;ctx.beginPath();ctx.arc(p[0],p[1],BR*(A/F)*sc(g.z)*(1+k*(g.hot?5:3)),0,7);ctx.stroke()});
   ctx.restore();                                                   // end of the play field layer
@@ -1180,13 +1445,14 @@ function draw(t,dt){
   bloom();
   if(lvl()>=34){invT-=dt;if(invT<=0){invA=.9;invT=5+Math.random()*8}}   // 35+: the colours invert without warning
   if(invA>0.02){ctx.save();ctx.globalCompositeOperation="difference";ctx.fillStyle="rgba(255,255,255,"+invA+")";ctx.fillRect(0,0,W,H);ctx.restore();invA=Math.max(0,invA-dt*2.5)}
-  if(flashA>0.01){ctx.fillStyle="rgba(255,255,255,"+flashA*.55+")";ctx.fillRect(0,0,W,H)}
+  if(!bossOn&&flashA>0.01){ctx.fillStyle="rgba(255,255,255,"+flashA*.55+")";ctx.fillRect(0,0,W,H)}
   const ins=insane();                                              // glitch: shifted slices of the screen
-  if(ins>0&&glitchOn&&(frameN++%2===0)){
+  if(!bossOn&&ins>0&&glitchOn&&(frameN++%2===0)){
     const n=2+Math.floor(ins*5);
     for(let i=0;i<n;i++){const y=Math.random()*H,h=4+Math.random()*28*ins,dx=(Math.random()-.5)*70*ins;ctx.drawImage(cv,0,y,W,h,dx,y,W,h)}}
   if(MODE==="gef")drawGefGlitches(t);
   if(MODE==="test")drawStamina(t);
+  if(bossOn)drawBossHud(t);
   if(MODE!=="classic")psyHud(t)}
 function drawStamina(t){                                          // TEST MODE: small stamina meter, bottom-centre
   const w=250,h=9,x=(W-w)/2,y=H-34,low=stamina<.25,blink=Math.floor(t*8)%2===0;
@@ -1234,7 +1500,7 @@ function touchPaddle(e,r){                                         // the paddle
 // Every ball sent over the wire is flipped into the receiver's frame (x -> -x, z -> 1-z). Each player is the
 // referee for their own end, so a hit is judged on the screen of the person making it - no lag on your own paddle.
 // Between hits the flight is deterministic (fixed 120 Hz steps), so only hits and misses need to be sent.
-const WIN_PTS=7,NSTEP=1/120,CODE_AB="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+const RELAY="wss://hellball.hellball-discord.workers.dev",WIN_PTS=7,NSTEP=1/120,CODE_AB="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const net={ws:null,host:false,live:false,full:false,leaving:false,code:"",room:"",me:0,them:0,server:"me",lastLoser:"them",
   meReady:false,themReady:false,meRe:false,themRe:false,ox:0,oy:0,ovx:0,ovy:0,acc:0,rtt:120,padT:0,lastMsg:0};
 const $=id=>document.getElementById(id);
@@ -1256,7 +1522,9 @@ function netOpen(code){                                          // code given =
     net.code="";net.room="dc-"+id}
   else{net.code=code||newCode();net.room="web-"+net.code}
   lobby({status:"CONNECTING..."});
-  const url=(location.protocol==="https:"?"wss://":"ws://")+location.host+(inDiscord()?"/.proxy":"")+"/ws/"+encodeURIComponent(net.room);
+  const url=inDiscord()?(location.protocol==="https:"?"wss://":"ws://")+location.host+"/.proxy/ws/"+encodeURIComponent(net.room)   // Discord: through the activity's /ws URL mapping
+    :/\.workers\.dev$|^(localhost|127\.0\.0\.1)$/.test(location.hostname)?(location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws/"+encodeURIComponent(net.room)
+    :RELAY+"/ws/"+encodeURIComponent(net.room);                // anywhere else (e.g. GitHub Pages): the relay on Cloudflare
   let ws;try{ws=net.ws=new WebSocket(url)}catch(e){lobby({status:"COULD NOT REACH THE GAME SERVER."});return}
   ws.onmessage=e=>{if(net.ws!==ws)return;let m;try{m=JSON.parse(e.data)}catch(_){return}
     net.lastMsg=performance.now();
