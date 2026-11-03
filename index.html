@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!-- HELLBALL: the online modes (1V1 ONLINE, KING OF THE HILL) live in online.js, loaded by the line just before </body>.
+     When you edit or replace this file, KEEP that <script src="online.js"></script> line, and keep these game names unchanged:
+     hud step doServe goMenu fmStep fmOn clickServe serveStep strike reset show MODE st ball pad (full list at the top of online.js).
+     Do not paste online code into this file. -->
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>HELLBALL</title>
@@ -1588,4 +1592,5 @@ function touchPaddle(e,r){                                         // the paddle
   pad.mx=e.clientX-r.left;pad.my=my-off;padFromScreen();pad.tx=clamp(pad.rx,-padLim(),padLim());pad.ty=clamp(pad.ry,-padLim(),padLim())}
 reset();hud();profInit();
 requestAnimationFrame(frame);
-</script></body></html>
+</script>
+<script src="online.js"></script></body></html>
