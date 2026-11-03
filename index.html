@@ -36,6 +36,8 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 body.boss #quote{top:150px}body.boss #flash{top:124px}
 #mD{border-color:#ff66cc;color:#ff66cc}
 #mD:hover{background:rgba(255,102,204,.08);text-shadow:0 0 8px #ff66cc}
+#mK{border-color:#ffb000;color:#ffb000}
+#mK:hover{background:rgba(255,176,0,.08);text-shadow:0 0 8px #ffb000}
 #mO{border-color:#33d6ff;color:#33d6ff}
 #mO:hover{background:rgba(51,214,255,.08);text-shadow:0 0 8px #33d6ff}
 #lobby{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(2,8,4,.92);z-index:60;padding:16px;box-sizing:border-box;text-align:center}
@@ -78,7 +80,7 @@ body.touch #tb{display:flex}
 <div id="hud"><span style="color:#ff4455;text-shadow:0 0 8px #ff4455">HELLBALL <span style="color:#119944;text-shadow:none" id="np"></span> <span style="color:#119944;text-shadow:none;margin-left:10px;letter-spacing:1px" id="pl"></span></span><button id="menuBtn" title="R">MENU</button><button id="mbtn" title="M">MUSIC: ON</button><button id="fbtn" title="force your songs to play (testing)">SONGS: AUTO</button><span id="s"></span></div>
 <canvas id="c"></canvas><div id="msg"></div><div id="flash"></div><div id="fym">FREE YOUR MIND</div><div id="quote"></div>
 <div id="tb"><button id="tbN" title="next track">NEXT</button><button id="tbF" title="sound fx">FX</button><button id="tbG" title="tap: glitch on/off, hold: calm">GLITCH</button></div><div id="rot">ROTATE YOUR DEVICE<small>HELLBALL IS PLAYED IN LANDSCAPE</small></div>
-<div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mD" class="mBtn">DAILY CHALLENGE<small id="mDs"></small></button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button><button id="mO" class="mBtn">1V1 ONLINE<small>play a friend &middot; first to 7</small></button><div id="prof"></div></div>
+<div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mD" class="mBtn">DAILY CHALLENGE<small id="mDs"></small></button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button><button id="mO" class="mBtn">1V1 ONLINE<small>play a friend &middot; first to 7</small></button><button id="mK" class="mBtn">KING OF THE HILL<small>up to 4 &middot; winner stays on &middot; 5 in a row wins</small></button><div id="prof"></div></div>
 <div id="lobby" class="hidden"><div class="msTitle">1V1 ONLINE</div><div id="lbCode"></div><div id="lbStatus"></div><input id="lbLink" class="hidden" readonly><button id="lbCopy" class="mBtn hidden">COPY INVITE LINK</button><button id="lbReady" class="mBtn hidden">READY</button><button id="lbBack" class="mBtn">BACK TO MENU</button></div>
 <script>
 const cv=document.getElementById("c"),ctx=cv.getContext("2d"),msg=document.getElementById("msg"),fl=document.getElementById("flash");
@@ -1454,7 +1456,7 @@ const net={ws:null,host:false,live:false,full:false,leaving:false,code:"",room:"
 const $=id=>document.getElementById(id);
 const inDiscord=()=>/[?&]frame_id=/.test(location.search);
 const baseURL=()=>location.href.split(/[?#]/)[0];
-const inviteURL=()=>baseURL()+"#join="+net.code;
+const inviteURL=()=>baseURL()+(net.koth?"#koth=":"#join=")+net.code;
 function newCode(){let s="";for(let i=0;i<5;i++)s+=CODE_AB[Math.floor(Math.random()*CODE_AB.length)];return s}
 function netSend(m){if(net.ws&&net.ws.readyState===1)try{net.ws.send(JSON.stringify(m))}catch(e){}}
 function lobby(o){                                               // o: {status, link, ready}
@@ -1464,11 +1466,11 @@ function lobby(o){                                               // o: {status, 
   $("lbReady").classList.toggle("hidden",!o.ready)}
 function waitMsg(){return inDiscord()?"WAITING FOR AN OPPONENT<br>ANYONE ELSE IN THIS ACTIVITY WHO PICKS 1V1 ONLINE LANDS RIGHT HERE."
   :"WAITING FOR AN OPPONENT<br>COPY THE INVITE LINK AND SEND IT. WHOEVER OPENS IT LANDS RIGHT HERE."}
-function netOpen(code){                                          // code given = joining from an invite link
-  MODE="online";st.state="lobby";net.full=false;net.leaving=false;net.live=false;show("");
+function netOpen(code,koth){                                     // code given = joining from an invite link; koth = KING OF THE HILL room
+  MODE="online";st.state="lobby";net.full=false;net.leaving=false;net.live=false;net.koth=!!koth;net.ks=null;net.spec=false;net.kPend=false;show("");
   if(inDiscord()){const id=window.DISCORD_INSTANCE;if(!id){lobby({status:"STILL CONNECTING TO DISCORD...<br>TRY AGAIN IN A SECOND."});return}
-    net.code="";net.room="dc-"+id}
-  else{net.code=code||newCode();net.room="web-"+net.code}
+    net.code="";net.room=(koth?"kdc-":"dc-")+id}
+  else{net.code=code||newCode();net.room=(koth?"kweb-":"web-")+net.code}
   lobby({status:"CONNECTING..."});
   const url=inDiscord()?(location.protocol==="https:"?"wss://":"ws://")+location.host+"/.proxy/ws/"+encodeURIComponent(net.room)   // Discord: through the activity's /ws URL mapping
     :/\.workers\.dev$|^(localhost|127\.0\.0\.1)$/.test(location.hostname)?(location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws/"+encodeURIComponent(net.room)
@@ -1476,6 +1478,7 @@ function netOpen(code){                                          // code given =
   let ws;try{ws=net.ws=new WebSocket(url)}catch(e){lobby({status:"COULD NOT REACH THE GAME SERVER."});return}
   ws.onmessage=e=>{if(net.ws!==ws)return;let m;try{m=JSON.parse(e.data)}catch(_){return}
     net.lastMsg=performance.now();
+    if(net.koth){kothMsg(m);return}
     if(m.t==="wait"){net.host=true;lobby({status:waitMsg(),link:true})}
     else if(m.t==="peer"){net.host=!!m.host;net.live=true;net.meReady=net.themReady=false;
       lobby({status:"OPPONENT CONNECTED<br>CLICK READY WHEN YOU ARE.",ready:true})}
@@ -1484,9 +1487,10 @@ function netOpen(code){                                          // code given =
     else netMsg(m)};
   ws.onclose=()=>{if(net.ws!==ws)return;net.ws=null;const was=net.live;net.live=false;
     if(net.leaving||net.full||MODE!=="online")return;reset();balls=[];st.state="lobby";show("");
-    lobby({status:(was?"CONNECTION LOST.":"COULD NOT REACH THE GAME SERVER.")+"<br>GO BACK TO THE MENU AND PICK 1V1 ONLINE TO TRY AGAIN."})}}
+    lobby({status:(was?"CONNECTION LOST.":"COULD NOT REACH THE GAME SERVER.")+"<br>GO BACK TO THE MENU AND PICK THE MODE AGAIN TO RETRY."})}}
 function netLeave(){net.leaving=true;netSend({t:"bye"});try{net.ws&&net.ws.close()}catch(e){}net.ws=null;net.live=false;$("lobby").classList.add("hidden")}
 function netLost(){
+  if(net.koth){net.live=false;reset();st.state="lobby";show("");try{net.ws&&net.ws.close()}catch(e){}lobby({status:"CONNECTION LOST.<br>GO BACK TO THE MENU AND PICK THE MODE AGAIN TO RETRY."});return}
   net.live=false;reset();balls=[];st.state="lobby";show("");hud();
   lobby({status:"YOUR OPPONENT LEFT.<br>"+waitMsg().split("<br>")[1],link:true})}
 setInterval(()=>{if(!net.live)return;const n=performance.now();netSend({t:"ping",ts:n});   // a timer, not a frame: keeps going in a background tab
@@ -1526,11 +1530,12 @@ function netBall(h,quiet){                                       // one fixed ph
     const hh=PHe()+BR;
     if(Math.abs(ball.x-pad.x)<hh&&Math.abs(ball.y-pad.y)<hh){const hot=Math.abs(ball.x-pad.x)<HZ()&&Math.abs(ball.y-pad.y)<HZ();
       strike("p",ball.x-pad.x,ball.y-pad.y,pad.vx,pad.vy,false);ball.hot=hot;netHit(false)}
-    else{ball.z=0;ball.hold=true;netSend({t:"miss"});netPoint("them")}
+    else{ball.z=0;ball.hold=true;if(net.koth)netSend({t:"kmiss",ep:net.ep});else{netSend({t:"miss"});netPoint("them")}}
     return true}
   return false}
 function netStep(dt){
   ai.x+=(net.ox-ai.x)*Math.min(1,dt*20);ai.y+=(net.oy-ai.y)*Math.min(1,dt*20);ai.vx=net.ovx;ai.vy=net.ovy;
+  if(net.spec)return kothSpecStep(dt);
   const n=performance.now();if(net.live&&n-net.padT>33){net.padT=n;netSend({t:"p",x:pad.x,y:pad.y,vx:pad.vx,vy:pad.vy})}
   if(st.state==="serve"){if(net.server==="me")serveStep();return}
   if(st.state!=="play")return;
@@ -1566,8 +1571,73 @@ function netPoint(who){
 function netClick(){if(st.state==="over"&&!net.meRe){net.meRe=true;netSend({t:"rematch"});
   show(msg.firstChild.textContent,"WAITING FOR YOUR OPPONENT...");netMaybeRematch()}}
 function netMaybeRematch(){if(net.meRe&&net.themRe)netStart(net.lastLoser)}
-function netHud(){$("s").textContent="1V1 ONLINE   YOU "+net.me+" - "+net.them+" OPP   FIRST TO "+WIN_PTS+(net.live?"   PING "+Math.round(net.rtt)+"MS":"")}
+function netHud(){if(net.koth)return kothHud();$("s").textContent="1V1 ONLINE   YOU "+net.me+" - "+net.them+" OPP   FIRST TO "+WIN_PTS+(net.live?"   PING "+Math.round(net.rtt)+"MS":"")}
+/* ---------- KING OF THE HILL: up to 4 in a room, two on court, the rest watch in line; every point the loser goes to the back ---------- */
+const KOTH_WIN=5;
+const kname=id=>net.ks&&id===net.ks.you?"YOU":"P"+id;
+function kothMsg(m){
+  if(m.t==="ks"){kothState(m);return}
+  if(m.t==="full"){net.full=true;lobby({status:"THIS KING OF THE HILL IS FULL ("+m.max+" PLAYERS).<br>TRY AGAIN WHEN SOMEONE LEAVES."});return}
+  if(m.t==="pong"){net.rtt=net.rtt*.7+(performance.now()-m.ts)*.3;hud();return}
+  if(m.ep!==undefined&&m.ep!==net.ep)return;                   // left over from an earlier point
+  if(net.spec)kothSpecMsg(m);
+  else if(m.from===net.opp)netMsg(m)}
+function kothState(s){
+  net.ks=s;net.ep=s.ep;net.live=true;
+  if(s.pt){kothPoint(s);return}
+  if(net.kPend){hud();return}                                    // a point is on screen: the timer applies the newest state
+  kothApply(s)}
+function kothPoint(s){                                           // a point was decided: show it, then swap
+  const p=s.pt,me=s.you;
+  st.state="between";ball.hold=true;net.kPend=true;
+  if(p.loser===me){pulse("rgba(255,68,85,.45)");tn(130,.4,"sawtooth",.07,60);psyEvent("miss")}
+  else if(p.winner===me){pulse("rgba(51,255,119,.35)");tn(660,.15,"square",.04);setTimeout(()=>tn(990,.25,"square",.04),120)}
+  if(p.loser===net.far)burst(ball.x,ball.y,1);
+  if(p.won){show(p.won===me?"YOU ARE KING OF THE HILL":kname(p.won)+" IS KING OF THE HILL",KOTH_WIN+" IN A ROW - NEW GAME STARTING");
+    if(p.won===me)[784,988,1175,1568].forEach((f,i)=>setTimeout(()=>tn(f,.18,"square",.045),i*90))}
+  else flash(p.winner===me?"POINT   STREAK "+s.streak+"/"+KOTH_WIN:p.loser===me?"YOU LOST THE POINT"+(s.line.includes(me)?"   BACK OF THE LINE":""):kname(p.winner)+" TAKES THE POINT",
+    p.winner===me?"#33ff77":p.loser===me?"#ff4455":"#ffb000");
+  hud();const ep=s.ep;
+  setTimeout(()=>{if(net.kPend&&net.ks&&net.ks.ep>=ep&&MODE==="online"&&net.koth)kothApply(net.ks)},p.won?3000:900)}
+function kothApply(s){
+  net.kPend=false;const me=s.you,n=(s.champ!=null?1:0)+(s.chal!=null?1:0)+s.line.length;
+  if(s.champ==null||s.chal==null){reset();balls=[];st.state="lobby";net.spec=false;show("");hud();
+    lobby({status:"KING OF THE HILL<br>WAITING FOR MORE PLAYERS ("+n+"/"+s.max+")<br>"+(inDiscord()?"ANYONE ELSE IN THIS ACTIVITY CAN PICK KING OF THE HILL TO JOIN.":"SEND THE INVITE LINK - UP TO "+s.max+" CAN PLAY."),link:true});return}
+  $("lobby").classList.add("hidden");$("modesel").classList.add("hidden");
+  net.spec=me!==s.champ&&me!==s.chal;
+  net.near=net.spec?s.champ:me;net.far=net.spec?s.chal:(me===s.champ?s.chal:s.champ);net.opp=net.spec?null:net.far;
+  st.level=Math.min(8,s.streak);balls=[];reset();
+  net.server=s.serve===net.near?"me":"them";if(net.server==="them")ball.z=0.97;
+  net.acc=0;st.state="serve";st.armAt=performance.now()+600;st.first=true;hud();
+  if(net.spec){const pos=s.line.indexOf(me);
+    show("SPECTATING   "+kname(s.champ)+" VS "+kname(s.chal),pos===0?"YOU'RE NEXT UP":"YOU ARE #"+(pos+1)+" IN LINE",true)}
+  else show(net.server==="me"?"YOUR SERVE":"OPPONENT SERVES",(me===s.champ?"YOU HOLD THE HILL   STREAK "+s.streak+"/"+KOTH_WIN:"KNOCK "+kname(s.champ)+" OFF THE HILL")+(s.line.length?"   //   NEXT UP: "+kname(s.line[0]):""),true)}
+function kothSpecMsg(m){                                         // spectators see the match from the king's end
+  const near=m.from===net.near;
+  if(m.t==="p"){if(near){net.sx=m.x;net.sy=m.y}else{net.ox=-m.x;net.oy=m.y;net.ovx=-m.vx;net.ovy=m.vy}}
+  else if(m.t==="hit"){const b=m.b;
+    Object.assign(ball,near?{x:b.x,y:b.y,z:b.z,vx:b.vx,vy:b.vy,vz:b.vz,sx:b.sx,sy:b.sy}:{x:-b.x,y:b.y,z:1-b.z,vx:-b.vx,vy:b.vy,vz:-b.vz,sx:-b.sx,sy:b.sy},
+      {hits:b.hits,hot:b.hot,hold:false,touch:null,cork:null});
+    if(st.state!=="play")st.state="play";
+    rings.push({x:ball.x,y:ball.y,z:ball.z,t:0,hot:b.hot});tink(b.hot);net.acc=0}}
+function kothSpecStep(dt){
+  net.kx=(net.kx||0)+((net.sx||0)-(net.kx||0))*Math.min(1,dt*20);net.ky=(net.ky||0)+((net.sy||0)-(net.ky||0))*Math.min(1,dt*20);
+  pad.x=net.kx;pad.y=net.ky;pad.vx=pad.vy=0;
+  if(st.state!=="play")return;
+  net.acc+=dt;
+  while(net.acc>=NSTEP){net.acc-=NSTEP;if(ball.hold){net.acc=0;break}
+    ball.vx+=ball.sx*NSTEP;ball.vy+=ball.sy*NSTEP;ball.x+=ball.vx*NSTEP;ball.y+=ball.vy*NSTEP;ball.z+=ball.vz*NSTEP;
+    let bn=false;
+    if(ball.x>F){ball.x=F;ball.vx=-ball.vx;bn=true}if(ball.x<-F){ball.x=-F;ball.vx=-ball.vx;bn=true}
+    if(ball.y>F){ball.y=F;ball.vy=-ball.vy;bn=true}if(ball.y<-F){ball.y=-F;ball.vy=-ball.vy;bn=true}
+    if(bn){bounceSnd();if(wa<.3)bflash.push({z:ball.z,t:0})}
+    if(ball.z>=1&&ball.vz>0){ball.z=1;ball.hold=true}else if(ball.z<=0&&ball.vz<0){ball.z=0;ball.hold=true}}
+  trail.push([ball.x,ball.y,ball.z]);if(trail.length>14)trail.shift()}
+function kothHud(){const s=net.ks;if(!s){$("s").textContent="KING OF THE HILL";return}
+  $("s").textContent="KOTH  "+(s.champ!=null?"KING "+kname(s.champ)+" "+"★".repeat(s.streak)+"☆".repeat(Math.max(0,KOTH_WIN-s.streak)):"")+
+    (s.chal!=null?"  VS "+kname(s.chal):"")+"  NEXT: "+(s.line.length?kname(s.line[0]):"-")+(net.live?"  "+Math.round(net.rtt)+"MS":"")}
+$("mK").addEventListener("click",()=>{musicStart();netOpen(null,true)});
 reset();hud();profInit();
-{const j=location.hash.match(/join=([A-Z0-9]{5})(?![A-Z0-9])/i);if(j&&!inDiscord())netOpen(j[1].toUpperCase())}   // opened from an invite link: straight to the lobby
+{const j=location.hash.match(/(join|koth)=([A-Z0-9]{5})(?![A-Z0-9])/i);if(j&&!inDiscord())netOpen(j[2].toUpperCase(),j[1].toLowerCase()==="koth")}   // opened from an invite link: straight to the lobby
 requestAnimationFrame(frame);
 </script></body></html>
