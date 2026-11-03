@@ -1,17 +1,82 @@
-/* HELLBALL - ONLINE MODES (1V1 ONLINE + KING OF THE HILL)
+/* HELLBALL - ONLINE MODES (1V1 ONLINE + KING OF THE HILL) + SERVER LEADERBOARD
    This file is separate from index.html on purpose: index.html can be replaced wholesale without losing the
    online modes. index.html only needs   <script src="online.js"></script>   just before </body>.
    It plugs into the game from outside: it adds its menu buttons, lobby and styles, and wraps hud(), step(),
-   doServe() and goMenu(). It relies on these game globals keeping their names: MODE st ball pad ai F BR PHe HZ
+   doServe(), goMenu() and endRun() (leaderboard). It relies on these game globals keeping their names: MODE st ball pad ai F BR PHe HZ
    strike reset show flash pulse tn tink burst rings trail balls syncField musicStart psyClick psyEvent
-   bounceSnd bflash wa serveStep clickServe touchPaddle touchOn usingTouch held fmOn fmStep SERVE_TXT msg.
+   bounceSnd bflash wa serveStep clickServe touchPaddle touchOn usingTouch held fmOn fmStep SERVE_TXT msg endRun hardOn dayKey.
    The relay server is worker.js (Cloudflare). */
+/* ---------- SERVER LEADERBOARD: best scores per Discord server (or per DM, or one WORLD board on the web), kept by worker.js ---------- */
+(()=>{
+if(window.HBLB||!document.getElementById("modesel"))return;
+const Q=new URLSearchParams(location.search),inDc=/[?&]frame_id=/.test(location.search);
+const SCOPE=inDc?(Q.get("guild_id")?"g-"+Q.get("guild_id"):"c-"+(Q.get("channel_id")||"x")):"web";
+const WHERE=inDc?(Q.get("guild_id")?"THIS SERVER":"THIS CHAT"):"WORLD";
+const API=inDc?"/.proxy/ws/lb/"+SCOPE                                                   // Discord: through the /ws URL mapping
+  :/\.workers\.dev$|^(localhost|127\.0\.0\.1)$/.test(location.hostname)?"/ws/lb/"+SCOPE
+  :"https://hellball.hellball-discord.workers.dev/ws/lb/"+SCOPE;
+const store=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}return v};
+let pid=store("hb_pid");if(!/^[a-z0-9]{8,24}$/.test(pid||""))pid=store("hb_pid",Array.from({length:12},()=>"abcdefghijklmnopqrstuvwxyz0123456789"[Math.random()*36|0]).join(""));
+const myName=()=>store("hb_name")||"PLAYER-"+pid.slice(0,4).toUpperCase();
+const BOARDS=[["normal","NORMAL"],["hard","HARD"],["gef","GEF"],["classic","CLASSIC"],["daily","DAILY"],["1v1","1V1 WINS"],["koth","KOTH CROWNS"]];
+const today=()=>typeof dayKey==="function"?dayKey():new Date().toISOString().slice(0,10);
+const key=b=>b==="daily"?"daily-"+today():b;
+const post=o=>fetch(API,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(Object.assign({pid,n:myName()},o))}).then(r=>r.json());
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+document.head.insertAdjacentHTML("beforeend",`<style>
+#mL{border-color:#ff66cc;color:#ff66cc}#mL:hover{background:rgba(255,102,204,.08);text-shadow:0 0 8px #ff66cc}
+#lbd{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(2,8,4,.95);z-index:70;padding:16px;box-sizing:border-box;overflow:auto;background:#020804}
+#lbd.hidden{display:none}
+#lbdTabs{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:640px}
+#lbdTabs button{background:transparent;border:1px solid #119944;color:#119944;font-family:"Courier New",monospace;font-size:11px;letter-spacing:2px;padding:5px 10px;cursor:pointer}
+#lbdTabs button.on{border-color:#ff66cc;color:#ff66cc;text-shadow:0 0 6px #ff66cc}
+#lbdList{width:min(460px,92vw);font-size:14px;letter-spacing:2px;line-height:1.9;color:#33ff77;min-height:200px}
+#lbdList .r{display:flex;gap:12px;border-bottom:1px solid rgba(17,153,68,.35)}#lbdList .r.me{color:#ffb000;text-shadow:0 0 8px rgba(255,176,0,.6)}
+#lbdList .k{width:2.2em;text-align:right;color:#119944}#lbdList .me .k{color:#ffb000}#lbdList .n{flex:1;overflow:hidden;white-space:nowrap}#lbdList .s{text-align:right}#lbdList .l{width:4.2em;text-align:right;color:#119944;font-size:11px}
+#lbdList .e{color:#119944;text-align:center;padding-top:70px}
+#lbdYou{font-size:12px;letter-spacing:2px;color:#119944;min-height:1em}
+#lbdName{display:flex;gap:8px;align-items:center;font-size:11px;letter-spacing:2px;color:#119944}
+#lbdName input{width:12em;background:transparent;border:1px solid #119944;color:#33ff77;font-family:"Courier New",monospace;font-size:13px;letter-spacing:2px;padding:5px 8px;text-transform:uppercase;-webkit-user-select:text;user-select:text}
+#lbdName button{background:transparent;border:1px solid #33ff77;color:#33ff77;font-family:"Courier New",monospace;font-size:11px;letter-spacing:2px;padding:5px 10px;cursor:pointer}
+@media (max-height:520px){#lbd{justify-content:flex-start;gap:8px}#lbdList{font-size:12px;line-height:1.6;min-height:0}}
+</style>`);
+document.getElementById("prof").insertAdjacentHTML("beforebegin",'<button id="mL" class="mBtn">LEADERBOARD<small>best scores in '+WHERE.toLowerCase()+'</small></button>');
+document.getElementById("modesel").insertAdjacentHTML("afterend",'<div id="lbd" class="hidden"><div class="msTitle">LEADERBOARD // '+WHERE+'</div><div id="lbdTabs">'+
+  BOARDS.map(([b,t])=>'<button data-b="'+b+'">'+t+'</button>').join("")+'</div><div id="lbdList"></div><div id="lbdYou"></div>'+
+  '<div id="lbdName">YOUR NAME <input id="lbdIn" maxlength="12" spellcheck="false"><button id="lbdSave">SAVE</button></div><button id="lbdX" class="mBtn">BACK TO MENU</button></div>');
+const $=id=>document.getElementById(id);
+let cur="normal",seq=0;
+function render(d){
+  const lv=cur!=="1v1"&&cur!=="koth";
+  $("lbdList").innerHTML=!d?'<div class="e">COULD NOT REACH THE LEADERBOARD.</div>':!d.top.length?'<div class="e">NO SCORES YET.<br>BE THE FIRST.</div>':
+    d.top.map((e,i)=>'<div class="r'+(e.me?" me":"")+'"><span class="k">'+(i+1)+'.</span><span class="n">'+esc(e.n)+'</span><span class="s">'+e.s+'</span><span class="l">'+(lv&&e.l?"LV "+e.l:"")+'</span></div>').join("");
+  $("lbdYou").textContent=!d?"":d.you?(d.you.rank>10?"YOU: #"+d.you.rank+" OF "+d.total+"   "+d.you.s:""):"YOU ARE NOT ON THIS BOARD YET"}
+function load(b){cur=b;for(const t of $("lbdTabs").children)t.classList.toggle("on",t.dataset.b===b);
+  const n=++seq;$("lbdList").innerHTML='<div class="e">LOADING...</div>';$("lbdYou").textContent="";
+  fetch(API+"?b="+encodeURIComponent(key(b))+"&pid="+pid).then(r=>r.json()).then(d=>{if(n===seq)render(d.top?d:null)},()=>{if(n===seq)render(null)})}
+function openLb(){$("lbdIn").value=myName();$("lbd").classList.remove("hidden");load(cur)}
+$("mL").addEventListener("click",()=>{if(typeof musicStart==="function")musicStart();openLb()});
+$("lbdX").addEventListener("click",()=>$("lbd").classList.add("hidden"));
+$("lbdTabs").addEventListener("click",e=>{const b=e.target.dataset&&e.target.dataset.b;if(b)load(b)});
+for(const ev of ["keydown","keyup","keypress"])$("lbdIn").addEventListener(ev,e=>{e.stopPropagation();if(ev==="keydown"&&e.key==="Enter")$("lbdSave").click()});   // typing a name must not fire the game's hotkeys
+$("lbdSave").addEventListener("click",()=>{const v=$("lbdIn").value.toUpperCase().replace(/[^A-Z0-9 _.-]/g,"").trim().slice(0,12);if(!v)return;
+  store("hb_name",v);$("lbdIn").value=v;post({op:"name"}).then(()=>load(cur),()=>{});$("lbdSave").textContent="SAVED";setTimeout(()=>$("lbdSave").textContent="SAVE",1200)});
+
+// every finished single-player run goes to its board; 1v1 wins and King of the Hill crowns are counted in the online code below
+const boardNow=()=>MODE==="normal"?(typeof hardOn!=="undefined"&&hardOn?"hard":"normal"):MODE==="gef"||MODE==="classic"||MODE==="daily"?MODE:null;
+const _endRun=endRun;endRun=function(lv){const b=boardNow(),sc=st.score,L=1+(+lv||0);const r=_endRun.apply(this,arguments);
+  if(b&&sc>0)post({op:"score",b:key(b),s:sc,l:L}).then(d=>{if(d&&d.you&&d.you.rank<=10&&typeof flash==="function")flash(WHERE+" RANK #"+d.you.rank,"#ff66cc")},()=>{});
+  return r};
+window.HBLB={win:b=>post({op:"win",b}).catch(()=>{}),open:openLb,load,pid,api:API};
+})();
+
 (()=>{
 if(document.getElementById("mO")||typeof window.netOpen==="function")return;   // index.html still has its own copy of the online code: let that one run
 
 /* ---------- the menu buttons, lobby and styles ---------- */
 document.head.insertAdjacentHTML("beforeend","<style>"+'#mK{border-color:#ffb000;color:#ffb000}\n#mK:hover{background:rgba(255,176,0,.08);text-shadow:0 0 8px #ffb000}\n#mO{border-color:#33d6ff;color:#33d6ff}\n#mO:hover{background:rgba(51,214,255,.08);text-shadow:0 0 8px #33d6ff}\n#lobby{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(2,8,4,.92);z-index:60;padding:16px;box-sizing:border-box;text-align:center}\n#lobby.hidden,#lobby .hidden{display:none}\n#lbCode{font-size:34px;letter-spacing:10px;color:#ffb000;text-shadow:0 0 12px rgba(255,176,0,.7)}\n#lbStatus{font-size:13px;letter-spacing:2px;line-height:1.9;color:#119944;max-width:560px}\n#lbLink{width:min(460px,90vw);background:transparent;border:1px solid #119944;color:#33ff77;font-family:"Courier New",monospace;font-size:12px;padding:8px 10px;text-align:center;-webkit-user-select:text;user-select:text}\n'+"</style>");
-document.getElementById("prof").insertAdjacentHTML("beforebegin",'<button id="mO" class="mBtn">1V1 ONLINE<small>play a friend &middot; first to 7</small></button><button id="mK" class="mBtn">KING OF THE HILL<small>up to 4 &middot; winner stays on &middot; 5 in a row wins</small></button>');
+(document.getElementById("mL")||document.getElementById("prof")).insertAdjacentHTML("beforebegin",'<button id="mO" class="mBtn">1V1 ONLINE<small>play a friend &middot; first to 7</small></button><button id="mK" class="mBtn">KING OF THE HILL<small>up to 4 &middot; winner stays on &middot; 5 in a row wins</small></button>');
 document.getElementById("modesel").insertAdjacentHTML("afterend",'<div id="lobby" class="hidden"><div class="msTitle">1V1 ONLINE</div><div id="lbCode"></div><div id="lbStatus"></div><input id="lbLink" class="hidden" readonly><button id="lbCopy" class="mBtn hidden">COPY INVITE LINK</button><button id="lbReady" class="mBtn hidden">READY</button><button id="lbBack" class="mBtn">BACK TO MENU</button></div>');
 window.DISCORD_INSTANCE=window.DISCORD_INSTANCE||new URLSearchParams(location.search).get("instance_id");   // the same id the Discord SDK reads
 /* ---------- ONLINE 1V1: two players through a tiny relay (worker.js); inside Discord the room is the activity instance ---------- */
@@ -134,6 +199,7 @@ function netPoint(who){
   hud();
   if(net.me>=WIN_PTS||net.them>=WIN_PTS){
     const won=net.me>net.them;net.lastLoser=won?"them":"me";net.meRe=net.themRe=false;st.state="over";
+    if(won&&window.HBLB)HBLB.win("1v1");
     show(won?"YOU WIN":"YOU LOSE",net.me+" - "+net.them+"   CLICK FOR A REMATCH");
     if(won)[784,988,1175,1568].forEach((f,i)=>setTimeout(()=>tn(f,.18,"square",.045),i*90));return}
   st.state="between";setTimeout(()=>{if(st.state==="between")netServe(who==="me"?"them":"me")},900)}
@@ -163,6 +229,7 @@ function kothPoint(s){                                           // a point was 
   else if(p.winner===me){pulse("rgba(51,255,119,.35)");tn(660,.15,"square",.04);setTimeout(()=>tn(990,.25,"square",.04),120)}
   if(p.loser===net.far)burst(ball.x,ball.y,1);
   if(p.won){show(p.won===me?"YOU ARE KING OF THE HILL":kname(p.won)+" IS KING OF THE HILL",KOTH_WIN+" IN A ROW - NEW GAME STARTING");
+    if(p.won===me&&window.HBLB)HBLB.win("koth");
     if(p.won===me)[784,988,1175,1568].forEach((f,i)=>setTimeout(()=>tn(f,.18,"square",.045),i*90))}
   else flash(p.winner===me?"POINT   STREAK "+s.streak+"/"+KOTH_WIN:p.loser===me?"YOU LOST THE POINT"+(s.line.includes(me)?"   BACK OF THE LINE":""):kname(p.winner)+" TAKES THE POINT",
     p.winner===me?"#33ff77":p.loser===me?"#ff4455":"#ffb000");

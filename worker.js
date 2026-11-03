@@ -95,12 +95,61 @@ export class Room {
     this.kSend({ left: id });
   }
 }
+
+/* ---------- Leaderboards: one Durable Object per scope (a Discord server, a DM, or "web"), best score per player per board ---------- */
+const LB_BOARD = /^(normal|hard|gef|classic|1v1|koth|daily-\d{4}-\d{2}-\d{2})$/, LB_PID = /^[a-z0-9]{8,24}$/, LB_KEEP = 100, LB_SHOW = 10;
+const lbName = n => String(n || "").toUpperCase().replace(/[^A-Z0-9 _.-]/g, "").trim().slice(0, 12);
+const lbCORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+const lbJSON = (o, status) => new Response(JSON.stringify(o), { status: status || 200, headers: Object.assign({ "Content-Type": "application/json", "Cache-Control": "no-store" }, lbCORS) });
+export class Board {
+  constructor(state) { this.s = state.storage; }
+  async view(b, pid) {
+    const list = (await this.s.get("b:" + b)) || [], top = list.slice(0, LB_SHOW);
+    const names = top.length ? await this.s.get(top.map(e => "n:" + e.p)) : new Map();
+    const i = pid ? list.findIndex(e => e.p === pid) : -1;
+    return { board: b, top: top.map(e => ({ n: names.get("n:" + e.p) || "PLAYER", s: e.s, l: e.l || 0, me: e.p === pid })),
+      you: i >= 0 ? { rank: i + 1, s: list[i].s } : null, total: list.length };
+  }
+  async fetch(req) {
+    const u = new URL(req.url);
+    if (req.method === "GET") {
+      const b = u.searchParams.get("b") || "", pid = u.searchParams.get("pid") || "";
+      if (!LB_BOARD.test(b)) return lbJSON({ error: "bad board" }, 400);
+      return lbJSON(await this.view(b, LB_PID.test(pid) ? pid : ""));
+    }
+    let m; try { m = JSON.parse(await req.text()); } catch (e) { return lbJSON({ error: "bad json" }, 400); }
+    if (!m || !LB_PID.test(m.pid || "")) return lbJSON({ error: "bad player" }, 400);
+    const name = lbName(m.n);
+    if (name) await this.s.put("n:" + m.pid, name);
+    if (m.op === "name") return lbJSON({ ok: true, n: name });
+    if (!LB_BOARD.test(m.b || "")) return lbJSON({ error: "bad board" }, 400);
+    const list = (await this.s.get("b:" + m.b)) || [];
+    let e = list.find(x => x.p === m.pid);
+    if (m.op === "win") { if (!e) list.push(e = { p: m.pid, s: 0 }); e.s += 1; e.t = Date.now(); }   // 1v1 wins / King of the Hill crowns: a running count
+    else {                                                     // a run's score: only the player's best counts
+      const sc = Math.floor(Number(m.s)), lv = Math.floor(Number(m.l)) || 0;
+      if (!(sc > 0 && sc < 1e8)) return lbJSON({ error: "bad score" }, 400);
+      if (!e) list.push(e = { p: m.pid, s: 0 });
+      if (sc > e.s) { e.s = sc; e.l = Math.max(0, Math.min(999, lv)); e.t = Date.now(); }
+    }
+    list.sort((a, b) => b.s - a.s || a.t - b.t);
+    if (list.length > LB_KEEP) list.length = LB_KEEP;
+    await this.s.put("b:" + m.b, list);
+    return lbJSON(await this.view(m.b, m.pid));
+  }
+}
 export default {
   async fetch(req, env) {
     const m = new URL(req.url).pathname.match(/^\/(?:\.proxy\/)?(?:ws\/)?((?:kdc|kweb|dc|web)-[A-Za-z0-9_-]{1,80})$/);   // /ws/<room>, or just /<room> if a Discord URL mapping stripped the /ws
     if (m) {
       const r = new Request(req); r.headers.set("X-Room", m[1]);
       return env.ROOMS.get(env.ROOMS.idFromName(m[1])).fetch(r);
+    }
+    const lb = new URL(req.url).pathname.match(/^\/(?:\.proxy\/)?(?:ws\/)?lb\/([A-Za-z0-9_-]{1,80})$/);   // leaderboards ride the same /ws URL mapping as the rooms
+    if (lb) {
+      if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: lbCORS });
+      if (req.method !== "GET" && req.method !== "POST") return lbJSON({ error: "method" }, 405);
+      return env.BOARDS.get(env.BOARDS.idFromName("lb:" + lb[1])).fetch(req);
     }
     return env.ASSETS.fetch(req);
   }

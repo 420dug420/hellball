@@ -5,3 +5,4 @@ worker.js
 wrangler.jsonc
 .assetsignore
 .gitignore
+.github
