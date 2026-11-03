@@ -27,6 +27,9 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 .mBtn{background:transparent;border:1px solid #33ff77;color:#33ff77;font-family:"Courier New",monospace;font-size:16px;letter-spacing:3px;padding:14px 34px;cursor:pointer;min-width:260px}
 .mBtn:hover{background:rgba(51,255,119,.08);text-shadow:0 0 8px #33ff77}
 .mBtn small{display:block;font-size:10px;letter-spacing:1px;color:#119944;margin-top:6px;text-transform:none}
+#hsub{display:none;flex-direction:column;align-items:center;gap:18px}
+#mHard{border-color:#ff4455;color:#ff4455}
+#mHard:hover{background:rgba(255,68,85,.08);text-shadow:0 0 8px #ff4455}
 #mG{border-color:#ff4455;color:#ff4455}
 #mG:hover{background:rgba(255,68,85,.08);text-shadow:0 0 8px #ff4455}
 #mT{border-color:#33d6ff;color:#33d6ff}
@@ -36,15 +39,6 @@ html,body{margin:0;height:100%;background:#020804;color:#33ff77;font-family:"Cou
 body.boss #quote{top:150px}body.boss #flash{top:124px}
 #mD{border-color:#ff66cc;color:#ff66cc}
 #mD:hover{background:rgba(255,102,204,.08);text-shadow:0 0 8px #ff66cc}
-#mK{border-color:#ffb000;color:#ffb000}
-#mK:hover{background:rgba(255,176,0,.08);text-shadow:0 0 8px #ffb000}
-#mO{border-color:#33d6ff;color:#33d6ff}
-#mO:hover{background:rgba(51,214,255,.08);text-shadow:0 0 8px #33d6ff}
-#lobby{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(2,8,4,.92);z-index:60;padding:16px;box-sizing:border-box;text-align:center}
-#lobby.hidden,#lobby .hidden{display:none}
-#lbCode{font-size:34px;letter-spacing:10px;color:#ffb000;text-shadow:0 0 12px rgba(255,176,0,.7)}
-#lbStatus{font-size:13px;letter-spacing:2px;line-height:1.9;color:#119944;max-width:560px}
-#lbLink{width:min(460px,90vw);background:transparent;border:1px solid #119944;color:#33ff77;font-family:"Courier New",monospace;font-size:12px;padding:8px 10px;text-align:center;-webkit-user-select:text;user-select:text}
 #prof{margin-top:6px;font-size:11px;letter-spacing:1px;line-height:1.8;color:#119944;text-align:center;max-width:560px}
 
 html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;touch-action:none}
@@ -73,22 +67,21 @@ body.touch #tb{display:flex}
 (async()=>{try{
   if(!/[?&]frame_id=/.test(location.search)||!window.DiscordSDK)return;
   const id=location.hostname.split(".")[0];
-  const sdk=new DiscordSDK(id);window.DISCORD_INSTANCE=sdk.instanceId;await sdk.ready();
+  const sdk=new DiscordSDK(id);await sdk.ready();
   try{await sdk.commands.setOrientationLockState({lock_state:3})}catch(e){}   // landscape on phones
 }catch(e){console.warn("Discord SDK:",e)}})();
 </script><!--/DISCORD-->
 <div id="hud"><span style="color:#ff4455;text-shadow:0 0 8px #ff4455">HELLBALL <span style="color:#119944;text-shadow:none" id="np"></span> <span style="color:#119944;text-shadow:none;margin-left:10px;letter-spacing:1px" id="pl"></span></span><button id="menuBtn" title="R">MENU</button><button id="mbtn" title="M">MUSIC: ON</button><button id="fbtn" title="force your songs to play (testing)">SONGS: AUTO</button><span id="s"></span></div>
 <canvas id="c"></canvas><div id="msg"></div><div id="flash"></div><div id="fym">FREE YOUR MIND</div><div id="quote"></div>
 <div id="tb"><button id="tbN" title="next track">NEXT</button><button id="tbF" title="sound fx">FX</button><button id="tbG" title="tap: glitch on/off, hold: calm">GLITCH</button></div><div id="rot">ROTATE YOUR DEVICE<small>HELLBALL IS PLAYED IN LANDSCAPE</small></div>
-<div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><button id="mD" class="mBtn">DAILY CHALLENGE<small id="mDs"></small></button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button><button id="mO" class="mBtn">1V1 ONLINE<small>play a friend &middot; first to 7</small></button><button id="mK" class="mBtn">KING OF THE HILL<small>up to 4 &middot; winner stays on &middot; 5 in a row wins</small></button><div id="prof"></div></div>
-<div id="lobby" class="hidden"><div class="msTitle">1V1 ONLINE</div><div id="lbCode"></div><div id="lbStatus"></div><input id="lbLink" class="hidden" readonly><button id="lbCopy" class="mBtn hidden">COPY INVITE LINK</button><button id="lbReady" class="mBtn hidden">READY</button><button id="lbBack" class="mBtn">BACK TO MENU</button></div>
+<div id="modesel"><div class="msTitle">SELECT MODE</div><button id="mN" class="mBtn">NORMAL</button><div id="hsub"><div class="msTitle">NORMAL</div><button id="mDef" class="mBtn">DEFAULT</button><button id="mHard" class="mBtn">HARD MODE<small>smaller rectangular paddles &middot; sweet spots curve less but fire 50% faster</small></button><button id="mBack" class="mBtn">BACK</button></div><button id="mD" class="mBtn">DAILY CHALLENGE<small id="mDs"></small></button><button id="mG" class="mBtn">GEF MODE<small>mutating paddles &middot; multiball volleys &middot; wall breaches</small></button><button id="mC" class="mBtn">CLASSIC MODE<small>no effects &middot; only the AI gets faster</small></button><div id="prof"></div></div>
 <script>
 const cv=document.getElementById("c"),ctx=cv.getContext("2d"),msg=document.getElementById("msg"),fl=document.getElementById("flash");
 let W,H,A,cx,cy;const ASP=4/3;                                // the tunnel is 4:3, like the original
 function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight-(innerWidth<=900&&innerHeight<=560?34:40);A=Math.min(W/ASP,H)*0.47;cx=W/2;cy=H/2}
 addEventListener("resize",rs);rs();
 let MODE="normal";
-let bossOn=false,fmOn=false;                                     // stage 10 (the cylinder) / the secret stage (FREE YOUR MIND)
+let bossOn=false,fmOn=false,hardOn=false,usingTouch=false;                                     // stage 10 (the cylinder) / the secret stage (FREE YOUR MIND)
 function setBoss(on){bossOn=on;document.body.classList.toggle("boss",on)}
 function fymShow(on){const e=document.getElementById("fym");if(e)e.style.display=on?"block":"none"}
 /* ---------- profile & stats: saved on this device (browser storage) ---------- */
@@ -312,39 +305,46 @@ const LIVES0=5;
 const st={score:0,level:0,lives:LIVES0,state:"select",armAt:0,clock:0};
 const lvl=()=>MODE==="classic"?0:st.level>=10?st.level-1:st.level;   // difficulty level. Stage 10 (st.level 9) is the cylinder boss; everything after it is shifted up by one stage                 // 0 = level 1; beat the opponent to go up a level. CLASSIC: everything stays at round 1...
 const PHe=()=>PH0*(1-0.01*Math.min(lvl(),12));             // paddle half-size shrinks a tiny bit each level
-const HZ=()=>PHe()*0.34;                                   // HOT ZONE: the centre of the paddle
+const HZ=()=>PHe()*0.34;
+const HR=()=>hardOn&&MODE==="normal"&&!bossOn&&!fmOn;           // HARD MODE: both paddles are smaller rectangles, wider than tall
+const HW=()=>HR()?PHe()*.9:PHe(),HH=()=>HR()?PHe()*.7:PHe(),HZW=()=>HW()*.34,HZH=()=>HH()*.34;                                   // HOT ZONE: the centre of the paddle
 const baseSpeed=()=>Math.min(0.95,0.5+0.05*Math.floor(lvl()/2));   // the ball barely speeds up between levels
 const aiSpeed=()=>{const L=Math.min(st.level,34);return Math.min(2.14,AI0+AIK*L)+0.1*Math.max(0,L-12)};   // keeps ramping to level 35, then holds
-const aimErr=()=>Math.max(0.05,PHe()*0.95*(1-0.04*lvl()));  // the AI aims a little more precisely each level
+const aimErr=()=>Math.max(0.05,PHe()*0.95*(1-0.04*lvl()))*Math.max(.55,1-.03*Math.max(0,lvl()-8));  // the AI aims a little more precisely each level
 const fakeP=()=>Math.min(.5,.05+.05*lvl())-(lvl()>20?Math.min(.25,(lvl()-20)*.017):0);   // past 20 it fakes less and just gets faster
+const NERV=()=>lvl()>=6?3:5;                                      // sweet spots in a row that rattle the AI (3 from level 7, 5 before)
 const insane=()=>lvl()>=9?Math.min(1,(lvl()-8)/6):0;         // level 10+ : walls gone, esoteric/insane background
 let ball,trail=[],rings=[],pad={x:0,y:0,vx:0,vy:0,tx:0,ty:0};
 let ai={x:0,y:0,vx:0,vy:0,off:[0,0],plan:{type:"",z0:0,ph:0,fx:0,fy:0,until:.5}};
+const FT_FRAMES=4,FT_K=.175,FT_MAX=3.75;let FT={n:0,ax:0,ay:0};     // follow-through: for 4 frames after contact your paddle keeps adding a little spin
 let balls=[],extraScored=0;                                    // GEF MODE: bonus "echo" balls in a multiball volley
-function reset(){ball={x:0,y:0,z:0.03,vx:0,vy:0,vz:0,sx:0,sy:0,touch:null};trail=[];decoys=[];ai.off=[0,0];ai.plan={type:"",z0:0,ph:0,fx:0,fy:0,until:.5}}
+function reset(){FT.n=0;ball={x:0,y:0,z:0.03,vx:0,vy:0,vz:0,sx:0,sy:0,touch:null};trail=[];decoys=[];ai.off=[0,0];ai.plan={type:"",z0:0,ph:0,fx:0,fy:0,until:.5}}
 function show(t,sub,low){msg.className=low?"low":"";msg.innerHTML=t?t+(sub?"<small>"+sub+"</small>":""):""}
 let flT=0;function flash(t,c){fl.textContent=t;fl.style.color=c||"#33ff77";fl.style.opacity=1;clearTimeout(flT);flT=setTimeout(()=>fl.style.opacity=0,1100)}
-function hud(){if(MODE==="online")return netHud();if(fmOn){document.getElementById("s").textContent="LEVEL "+(1+st.level)+" // FREE YOUR MIND   RETURNED "+FM.ret+"   SCORE "+st.score;return}
-  if(bossOn){document.getElementById("s").textContent="LEVEL 10 // THE CYLINDER "+BOSS.cp+"/"+CP0+"   MENTAL STRESS "+BOSS.msp+"/"+MSP0+"   SCORE "+st.score;return}document.getElementById("s").textContent="LEVEL "+(1+st.level)+(lvl()>=9?" // FIELD UNBOUND":"")+(MODE==="gef"?" // GEF":MODE==="test"?" // TEST":MODE==="classic"?" // CLASSIC":MODE==="daily"?" // DAILY":"")+"   LIVES "+"\u2665".repeat(st.lives)+"\u2661".repeat(Math.max(0,LIVES0-st.lives))+"   SCORE "+st.score}
+function hud(){if(fmOn){document.getElementById("s").textContent="LEVEL "+(1+st.level)+" // FREE YOUR MIND   RETURNED "+FM.ret+"   SCORE "+st.score;return}
+  if(bossOn){document.getElementById("s").textContent="LEVEL 10 // THE CYLINDER "+BOSS.cp+"/"+CP0+"   MENTAL STRESS "+BOSS.msp+"/"+MSP0+"   SCORE "+st.score;return}document.getElementById("s").textContent="LEVEL "+(1+st.level)+(lvl()>=9?" // FIELD UNBOUND":"")+(hardOn?" // HARD":"")+(MODE==="gef"?" // GEF":MODE==="test"?" // TEST":MODE==="classic"?" // CLASSIC":MODE==="daily"?" // DAILY":"")+"   LIVES "+"\u2665".repeat(st.lives)+"\u2661".repeat(Math.max(0,LIVES0-st.lives))+"   SCORE "+st.score}
 function pulse(m){const f=document.getElementById("hud");f.style.background=m;setTimeout(()=>f.style.background="",160)}
 try{const lq=parseInt(new URLSearchParams(location.search).get("level"));if(lq>1)st.level=Math.min(99,lq-1)}catch(e){}
-function pickMode(m){                                            // mode is only chosen the first time the game opens; every retry reuses it
+function pickMode(m,hard){hardOn=!!hard&&m==="normal";                                            // mode is only chosen the first time the game opens; every retry reuses it
   MODE=m;const ov=document.getElementById("modesel");if(ov)ov.classList.add("hidden");
   st.state="ready";hud();
   stamina=1;
-  show("HELLBALL"+(m==="gef"?" // GEF MODE":m==="test"?" // TEST MODE":m==="classic"?" // CLASSIC MODE":m==="daily"?" // DAILY CHALLENGE":""),
+  show("HELLBALL"+(hardOn?" // HARD MODE":"")+(m==="gef"?" // GEF MODE":m==="test"?" // TEST MODE":m==="classic"?" // CLASSIC MODE":m==="daily"?" // DAILY CHALLENGE":""),
     "EVERY POINT BEATS AN OPPONENT - ACE YOUR SERVE TO SKIP 2 LEVELS - YOU HAVE 5 LIVES - MOVE YOUR MOUSE TO AIM - CLICK TO START - THEN SWIPE THE PADDLE THROUGH THE BALL TO SERVE - M MUSIC - B NEXT TRACK - F SOUND FX - G CALMS THE GLITCH"+
     (m==="gef"?"  //  GEF: MUTATING PADDLE SHAPES - RANDOM MULTIBALL VOLLEYS - WALL BREACHES":"")+
     (m==="test"?"  //  TEST: HOLD LEFT-CLICK AS THE BALL ARRIVES TO CATCH IT - MOVE THE MOUSE TO WIND UP SPIN - RELEASE TO THROW - HOLDING A CAUGHT BALL DRAINS STAMINA, SWEET-SPOT HITS REFILL IT - HOLD SHIFT TO PHASE OUT YOUR PADDLE: SWEET SPOT ONLY, CORKSCREW SHOTS":"")+
     (m==="classic"?"  //  CLASSIC: NO EFFECTS - THE ONLY THING THAT GETS HARDER IS THE AI'S SPEED":"")+
     (m==="daily"?"  //  DAILY: TODAY'S SUBSTRATE IS "+ERAS[DAILY_ERA%5]+" - IT IS ACTIVE FROM THE FIRST SERVE - YOUR BEST SCORE TODAY IS SAVED":"")+
     "")}
-document.getElementById("mN").addEventListener("click",()=>pickMode("normal"));
+function showSub(on){const ms=document.getElementById("modesel");for(const c of ms.children)c.style.display=c.id==="hsub"?(on?"flex":"none"):(on?"none":"")}
+document.getElementById("mN").addEventListener("click",()=>showSub(true));
+document.getElementById("mDef").addEventListener("click",()=>{showSub(false);pickMode("normal")});
+document.getElementById("mHard").addEventListener("click",()=>{showSub(false);pickMode("normal",true)});
+document.getElementById("mBack").addEventListener("click",()=>showSub(false));
 function goMenu(){                                               // back to the main menu from anywhere (R key / MENU button); a run in progress is banked first
   if(st.state==="select")return;
-  if(MODE==="online")netLeave();
   if(st.score>0&&st.state!=="over")endRun(st.level);
-  MODE="normal";setBoss(false);fmOn=false;fymShow(false);BOSS.dead=false;st.score=0;st.level=0;st.lives=LIVES0;st.state="select";
+  MODE="normal";hardOn=false;showSub(false);setBoss(false);fmOn=false;fymShow(false);BOSS.dead=false;st.score=0;st.level=0;st.lives=LIVES0;st.state="select";
   balls=[];extraScored=0;breach=null;gefGlitches=[];stamina=1;held=false;shiftHeld=false;
   RUN.ace=RUN.sweet=RUN.vol=RUN.spd=0;
   if(MU.secret){MU.secret=false;MU.mel=null;MU.bar=0;MU.s=0;np();musicStop();musicStart()}else if(cMode&&!cForce){cSwitch(false)}
@@ -387,15 +387,17 @@ cv.addEventListener("pointermove",e=>{touchPaddle(e,cv.getBoundingClientRect());
 function toServe(){
   if(st.level===9&&MODE!=="classic"){setBoss(true);syncField();debris=[];shocks=[];flashA=0;shake=0;bossStart();return}   // STAGE 10: THE CYLINDER
   RUN.vol=0;RUN.spd=0;reset();st.state="serve";st.armAt=performance.now()+700;syncField();
-  show("SWIPE THE PADDLE THROUGH THE BALL TO SERVE","CENTRE OF THE PADDLE = HOT ZONE: MORE CURVE, MORE SPEED",true)}
+  show(SERVE_TXT(),SERVE_SUB(),true)}
 cv.addEventListener("pointerdown",e=>{
+  usingTouch=e.pointerType==="touch";const wasServe=st.state==="serve";
   if(e.pointerType==="touch")touchPaddle(e,cv.getBoundingClientRect());                  // a touch has no hover: place the paddle where the finger lands
   if(st.state==="select")return;
   if(e.button===0&&e.pointerType!=="touch")held=true;
   musicStart();psyClick();
-  if(MODE==="online"){netClick();return}
   if(st.state==="over"){st.score=0;st.level=0;st.lives=LIVES0;setBoss(false);fmOn=false;fymShow(false)}
-  if(st.state==="ready"||st.state==="over"){st.first=true;hud();toServe()}});
+  if(st.state==="ready"||st.state==="over"){st.first=true;hud();toServe()}
+  else if(wasServe&&!usingTouch&&e.button===0)clickServe()});
+cv.addEventListener("pointermove",e=>{usingTouch=e.pointerType==="touch"});
 
 /* ---------- level 10: the walls explode away and the field grows ---------- */
 let rf=0,rfWait=0,rfN=0;                                       // reform progress of the new, bigger walls
@@ -424,22 +426,23 @@ function aiTrick(){                                            // the AI sometim
   if(Math.random()>Math.min(.45,.02+.045*lvl()))return "";
   return ["BENDER","SLICE","SMASH","DROP"][Math.floor(Math.random()*4)]}
 function strike(who,dx,dy,pvx,pvy,serve,trick){
-  const s=lvl(),hz=HZ(),hot=Math.abs(dx)<hz&&Math.abs(dy)<hz,dir=who==="p"?1:-1;
-  const gain=2.1*(1+0.025*s)*(hot?1.8:1);
-  const curl=()=>hot?(Math.random()<.5?-1:1)*(1.1+0.05*s):0;    // a centre hit always adds some curve
+  const s=lvl(),hard=HR(),hot=Math.abs(dx)<HZW()&&Math.abs(dy)<HZH(),dir=who==="p"?1:-1;
+  const gain=2.1*(1+0.025*s)*(hot?(hard?1:1.8):1);                // hard mode: a sweet spot curves less...
+  const curl=()=>hot?(Math.random()<.5?-1:1)*(1.1+0.05*s)*(hard?.4:1):0;    // a centre hit always adds some curve
   ball.hits=serve?0:(ball.hits||0)+1;                            // speed comes from the level, not from compounding every hit
   const sp=baseSpeed()*(1+Math.min(.18,.02*ball.hits))*(serve?1+Math.min(.15,Math.hypot(pvx,pvy)*.03):1);
-  ball.vz=dir*sp*(hot?1.12:1);
+  ball.vz=dir*sp*(hot?(hard?1.12*1.5:1.12):1);              // ...but sends the ball 50% faster than the default sweet spot
   ball.vx=(serve?0:ball.vx)+dx*1.2+(serve?clamp(pvx,-2,2)*.25:0);
   ball.vy=(serve?0:ball.vy)+dy*1.2+(serve?clamp(pvy,-2,2)*.25:0);
   ball.sx=clamp(pvx*gain+curl(),-7,7);ball.sy=clamp(pvy*gain+curl(),-7,7);
   ball.fooled=false;
-  if(MODE==="classic"&&who==="p"){                               // CLASSIC: swing in an arc for a drastic curve
+  if(who==="p"){                                                 // ARC SHOTS (from classic, now in every mode): swing in an arc for a drastic curve
     const a=arc5(),bend=Math.hypot(a.dx,a.dy);
     ball.sx=clamp(a.ax*gain*.4+a.dx*.8+curl()*.5,-8,8);ball.sy=clamp(a.ay*gain*.4+a.dy*.8+curl()*.5,-8,8);   // the bend still counts double, overall roughly half as strong
     if(bend>4&&!serve)flash("ARC SHOT  +CURVE","#ffb000");
     ball.fooled=st.level<8&&(Math.abs(ball.vz)>=0.56||Math.hypot(ball.vx,ball.vy)>=1.8||Math.hypot(ball.sx,ball.sy)>=6.5)}   // really fast ball, before level 9
   ball.z=who==="p"?0.0:1;
+  if(who==="p"){FT.n=FT_FRAMES;FT.ax=0;FT.ay=0}
   ball.cork=who==="p"&&phased()?{R:.16*F,w:(pvx>=0?1:-1)*12,ph:0}:null;   // corkscrew: the ball spirals around its path
   rings.push({x:ball.x,y:ball.y,z:ball.z,t:0,hot});
   if(trick){
@@ -453,14 +456,22 @@ function strike(who,dx,dy,pvx,pvy,serve,trick){
   tink(hot);if(hot)pulse("rgba(255,176,0,.35)");
   if(MODE==="test"&&who==="p"&&hot&&!serve)stamina=Math.min(1,stamina+.75);
   if(ball.cork){flash("CORKSCREW","#33d6ff");tn(1400,.18,"sine",.04,500)}
-  if(who==="p"){const nv=MODE!=="classic"&&RUN.sweet>=5?2.2:1;ai.off=[(Math.random()*2-1)*aimErr()*nv,(Math.random()*2-1)*aimErr()*nv];planAI();if(!serve)PSY.rally++}   // 5 sweet spots in a row: the AI aims badly
+  if(who==="p"){const nv=MODE!=="classic"&&RUN.sweet>=NERV()?2.2:hot&&lvl()>=6?1.6:1;ball.hotP=hot&&lvl()>=6;ai.off=[(Math.random()*2-1)*aimErr()*nv,(Math.random()*2-1)*aimErr()*nv];planAI();if(!serve)PSY.rally++}   // 5 sweet spots in a row: the AI aims badly
   if(!serve){
     RUN.vol++;RUN.spd=Math.max(RUN.spd,Math.hypot(ball.vx,ball.vy,ball.vz));
     if(who==="p"){
       if(hot){RUN.sweet++;if(RUN.sweet>RUN.bestSweet)RUN.bestSweet=RUN.sweet;if(RUN.sweet>SV.bestSweet)SV.bestSweet=RUN.sweet;
-        if(MODE!=="classic"&&!trick){if(RUN.sweet===5)flash("FOCUS LOCK  -  THE AI IS RATTLED","#33d6ff");else if(RUN.sweet>=2&&RUN.sweet<5)flash("SWEET CHAIN x"+RUN.sweet,"#ffb000")}}
+        if(MODE!=="classic"&&!trick){if(RUN.sweet===NERV())flash("FOCUS LOCK  -  THE AI IS RATTLED","#33d6ff");else if(RUN.sweet>=2&&RUN.sweet<NERV())flash("SWEET CHAIN x"+RUN.sweet,"#ffb000")}}
       else RUN.sweet=0}}
   spawnDecoys()}
+const bait={t:0,tx:0,ty:0,side:1};
+function aiBait(dt){                                           // before every serve the AI drifts around, baiting you into aiming at the space it just left
+  const lim=F-PHe(),ax=ai.x,ay=ai.y;bait.t-=dt;
+  if(bait.t<=0){bait.t=.4+Math.random()*.7;if(Math.random()<.7)bait.side=-bait.side;
+    bait.tx=bait.side*(.25+Math.random()*.6)*lim;bait.ty=(Math.random()*2-1)*.75*lim}
+  const dx=bait.tx-ai.x,dy=bait.ty-ai.y,dd=Math.hypot(dx,dy),stp=Math.min(dd,Math.min(aiSpeed(),2)*.6*dt);
+  if(dd>1e-6){ai.x+=dx/dd*stp;ai.y+=dy/dd*stp}
+  ai.vx=ai.vx*.6+((ai.x-ax)/dt)*.4;ai.vy=ai.vy*.6+((ai.y-ay)/dt)*.4}
 function planAI(){                                             // fakes and erratic movement while the ball travels to the AI
   const p={type:"",z0:ball.z,ph:Math.random()*6.28,fx:0,fy:0,until:.45+Math.random()*.25};
   if(Math.random()<fakeP()){
@@ -484,8 +495,8 @@ function pointInPoly(px,py,poly){
     const xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];
     if(((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi))inside=!inside}
   return inside}
-function hitTest(shape,bx,by,cx0,cy0,h){                         // GEF MODE: a paddle's hitbox now matches its drawn shape
-  if(!shape||shape==="rect")return Math.abs(bx-cx0)<h&&Math.abs(by-cy0)<h;
+function hitTest(shape,bx,by,cx0,cy0,h,hy){                         // GEF MODE: a paddle's hitbox now matches its drawn shape
+  if(!shape||shape==="rect")return Math.abs(bx-cx0)<h&&Math.abs(by-cy0)<(hy||h);
   if(shape==="circle")return Math.hypot(bx-cx0,by-cy0)<h*0.92;
   return pointInPoly(bx,by,shape==="star"?starVerts(cx0,cy0,h):shapeVerts(shape,cx0,cy0,h))}
 let breach=null;                                                // {side,pos,hits,need,open,openT}
@@ -545,17 +556,25 @@ function drawDMT(t,ins){                                        // a rushing, co
 /* ---------- serve: swipe the paddle at the stationary ball ---------- */
 function serveStep(){
   if(performance.now()<st.armAt)return;
-  const dx=ball.x-pad.x,dy=ball.y-pad.y,h=(phased()?HZ():PHe())+BR,over=Math.abs(dx)<h&&Math.abs(dy)<h,d=Math.hypot(dx,dy);
+  if(!usingTouch)return;                                       // mouse: the serve waits for a left-click (see clickServe)
+  const dx=ball.x-pad.x,dy=ball.y-pad.y,h=(phased()?HZ():HW())+BR,hy=(phased()?HZ():HH())+BR,over=Math.abs(dx)<h&&Math.abs(dy)<hy,d=Math.hypot(dx,dy);
   if(over){
     if(!ball.touch||d<ball.touch.d)ball.touch={d,dx,dy,vx:pad.vx,vy:pad.vy};   // remember the closest pass
     else if(d>ball.touch.d+0.015)doServe()}
   else if(ball.touch)doServe()}
-function doServe(){
+function doServe(force){
   const t=ball.touch;ball.touch=null;
-  if(Math.hypot(t.vx,t.vy)<SERVE_MIN)return;                 // too gentle: not a swipe
-  strike("p",t.dx,t.dy,t.vx,t.vy,true);ball.z=0.03;st.state="play";st.first=false;show("");maybeMultiball();
-  if(MODE==="online"){ball.hot=Math.abs(t.dx)<HZ()&&Math.abs(t.dy)<HZ();netHit(true)}}
+  if(!force&&Math.hypot(t.vx,t.vy)<SERVE_MIN)return;                 // too gentle: not a swipe
+  strike("p",t.dx,t.dy,t.vx,t.vy,true);ball.z=0.03;st.state="play";st.first=false;show("");maybeMultiball()}
 
+function clickServe(){                                           // LEFT-CLICK with the paddle over the ball: serve with whatever motion the paddle has right now
+  if(performance.now()<st.armAt)return;
+  if(bossOn){const sv=BOSS.sv;if(!sv)return;const dx=sv.x-pad.x,dy=sv.y-pad.y,h=PHe()+BR;
+    if(Math.abs(dx)<h&&Math.abs(dy)<h){sv.touch={d:Math.hypot(dx,dy),dx,dy,vx:pad.vx,vy:pad.vy};bossDoServe(true)}return}
+  const dx=ball.x-pad.x,dy=ball.y-pad.y,h=(phased()?HZ():HW())+BR,hy=(phased()?HZ():HH())+BR;
+  if(Math.abs(dx)<h&&Math.abs(dy)<hy){ball.touch={d:Math.hypot(dx,dy),dx,dy,vx:pad.vx,vy:pad.vy};doServe(true)}}
+const SERVE_TXT=()=>usingTouch?"SWIPE THE PADDLE THROUGH THE BALL TO SERVE":"MOVE OVER THE BALL AND LEFT-CLICK TO SERVE";
+const SERVE_SUB=()=>usingTouch?"CENTRE OF THE PADDLE = HOT ZONE: MORE CURVE, MORE SPEED":"CLICK WHILE THE PADDLE IS MOVING - AND THE SWEET SPOT IS ON THE BALL - FOR A SWEET-SPOT SERVE";
 /* ---------- rally ---------- */
 const QUOTES=[
  ["THE BALL REMEMBERS EVERY HAND THAT STRUCK IT.","SIGNAL ACQUIRED. SOMETHING ON THE FAR SIDE IS LISTENING.","THE TUNNEL IS LONGER THAN IT LOOKS.",
@@ -658,10 +677,9 @@ function step(dt){
   for(let i=rings.length-1;i>=0;i--){rings[i].t+=dt;if(rings[i].t>.5)rings.splice(i,1)}
   if(lvl()>=5&&(qNext-=dt)<=0){qNext=20+Math.random()*15;levelQuote()}   // the deeper you go, the more it talks
   if(gHeld&&performance.now()-gDown>1600&&st.state==="serve"&&st.first&&!MU.secret)unlockSecret();
-  if(MODE==="online")return netStep(dt);
   if(fmOn){fmStep(dt);return}
   if(bossOn){bossStep(dt);return}
-  const h=PHe()+BR,aiShapeNow=MODE==="gef"?aiShape.kind:"rect";
+  const h=HW()+BR,hh=HH()+BR,aiShapeNow=MODE==="gef"?aiShape.kind:"rect";
   if(MODE==="gef"){                                              // GEF MODE: paddle mutation, wall-breach ticks, and the multiball volley
     aiShape.hold-=dt;if(aiShape.hold<=0){aiShape.kind=SHAPES[Math.floor(Math.random()*SHAPES.length)];aiShape.hold=3.5+Math.random()*5}
     if(!breach&&Math.random()<dt*0.045)spawnBreach();
@@ -683,7 +701,7 @@ function step(dt){
           if(Math.abs(b.x-pad.x)<h&&Math.abs(b.y-pad.y)<h){b.vz=Math.abs(b.vz);b.z=0;b.vx+=pad.vx*.3;b.vy+=pad.vy*.3;tink(false)}
           else{balls.splice(i,1);triggerGlitch()}}}}}            // missed: no life lost, no despawning the rest - just a persistent glitch
   if(MODE==="test"&&ball.caught)stamina=Math.max(0,stamina-dt*.9);   // drains fast, but only while a ball is actually caught
-  if(st.state==="serve"){serveStep();return}
+  if(st.state==="serve"){aiBait(dt);serveStep();return}
   if(st.state!=="play")return;
   if(ball.caught){                                               // TEST MODE: pinned where it landed, wind-up tracks your mouse
     ball.x=pad.x+ball.cox;ball.y=pad.y+ball.coy;ball.z=0;
@@ -691,6 +709,9 @@ function step(dt){
     trail.push([ball.x,ball.y,ball.z]);if(trail.length>14)trail.shift();
     if(!held||stamina<=0)releaseCatch();                         // let go, or your arm gives out
     return}
+  if(FT.n>0&&ball.vz>0){FT.n--;                                  // follow-through: paddle motion right after the hit nudges the spin, so you can steer a shot
+    const ux=clamp(pad.vx*FT_K,-1,1),uy=clamp(pad.vy*FT_K,-1,1),nx=clamp(FT.ax+ux,-FT_MAX,FT_MAX),ny=clamp(FT.ay+uy,-FT_MAX,FT_MAX);
+    ball.sx=clamp(ball.sx+nx-FT.ax,-8,8);ball.sy=clamp(ball.sy+ny-FT.ay,-8,8);FT.ax=nx;FT.ay=ny}else FT.n=0;
   ball.vx+=ball.sx*dt;ball.vy+=ball.sy*dt;
   ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;ball.z+=ball.vz*dt;
   if(ball.cork){const c=ball.cork;ball.x+=-c.R*c.w*Math.sin(c.ph)*dt;ball.y+=c.R*c.w*Math.cos(c.ph)*dt;c.ph+=c.w*dt}
@@ -709,26 +730,26 @@ function step(dt){
     else if(pl.type==="erratic"){const a=(0.4+0.08*lvl())*(1-0.85*prog);
       tx=clamp(tx+Math.sin(st.clock*9+pl.ph)*a*F*0.6,-lim,lim);ty=clamp(ty+Math.cos(st.clock*7.3+pl.ph*1.7)*a*F*0.5,-lim,lim);mul=1.4}}
   if(ball.cork&&ball.vz>0&&Math.abs(ball.vz)>=0.75*DEF_SPEED)mul*=ball.z<0.3?0:0.5;
-  if(MODE!=="classic"&&RUN.sweet>=5){                              // 5 sweet spots in a row: the AI gets nervous: it shakes and reacts slower
+  if(MODE!=="classic"&&ball.hotP&&ball.vz>0)mul*=.82;      // a sweet-spot return leaves the AI a step slow
+  if(MODE!=="classic"&&RUN.sweet>=NERV()){                              // 3-5 sweet spots in a row: the AI gets nervous: it shakes and reacts slower
     tx=clamp(tx+(Math.sin(st.clock*11)*.1+Math.sin(st.clock*17.3+1)*.06)*F,-lim,lim);ty=clamp(ty+Math.cos(st.clock*13)*.09*F,-lim,lim);mul*=.78}   // a fast corkscrew throws the AI: late to react, then sluggish
-  if(MODE==="classic"){
+  {
     if(ball.fooled&&ball.vz>0&&ball.z<0.5){                       // can't read a really fast ball yet: it watches YOUR paddle instead
       const lg=padLag();                                         // lagged, damped and wobbling, so it never looks like a mirror
       tx=clamp(lg.x*.7+Math.sin(st.clock*1.3+1)*.14*F,-lim,lim);ty=clamp(lg.y*.7+Math.cos(st.clock*1.1)*.12*F,-lim,lim)}
-    const cap=Math.min(sp*mul,Math.max(.25,playerMax*1.1)),dx=tx-ai.x,dy=ty-ai.y,dd=Math.hypot(dx,dy),stp=Math.min(dd,cap*dt);
+    const cap=Math.min(sp*mul,Math.max(.25+.05*Math.max(0,lvl()-8),playerMax*(1.1+Math.min(.6,.07*Math.max(0,lvl()-8))))),dx=tx-ai.x,dy=ty-ai.y,dd=Math.hypot(dx,dy),stp=Math.min(dd,cap*dt);
     if(dd>1e-6){ai.x+=dx/dd*stp;ai.y+=dy/dd*stp}}               // never more than 10% faster than you've been moving
-  else{ai.x+=clamp(tx-ai.x,-sp*mul*dt,sp*mul*dt);ai.y+=clamp(ty-ai.y,-sp*mul*dt,sp*mul*dt)}
   ai.vx=ai.vx*0.6+((ai.x-ax)/dt)*0.4;ai.vy=ai.vy*0.6+((ai.y-ay)/dt)*0.4;
   trail.push([ball.x,ball.y,ball.z]);if(trail.length>14)trail.shift();
   for(const d of decoys){d.vx+=d.sx*dt;d.vy+=d.sy*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;      // phantom balls: same depth as the real one
     if(Math.abs(d.x)>F){d.x=Math.sign(d.x)*F;d.vx=-d.vx}if(Math.abs(d.y)>F){d.y=Math.sign(d.y)*F;d.vy=-d.vy}
     d.tr.push([d.x,d.y,ball.z]);if(d.tr.length>14)d.tr.shift()}
   if(ball.z>=1&&ball.vz>0){
-    if(hitTest(aiShapeNow,ball.x,ball.y,ai.x,ai.y,h))strike("a",ball.x-ai.x,ball.y-ai.y,ai.vx+(Math.random()-.5)*1.5,ai.vy+(Math.random()-.5)*1.5,false,aiTrick());
+    if(hitTest(aiShapeNow,ball.x,ball.y,ai.x,ai.y,h,hh))strike("a",ball.x-ai.x,ball.y-ai.y,ai.vx+(Math.random()-.5)*1.5,ai.vy+(Math.random()-.5)*1.5,false,aiTrick());
     else{burst(ball.x,ball.y,1);return afterPoint()}}
   if(ball.z<=0&&ball.vz<0){
-    const hp=phased()?HZ()+BR:h;                                 // phased: only the sweet spot can touch the ball
-    if(Math.abs(ball.x-pad.x)<hp&&Math.abs(ball.y-pad.y)<hp){
+    const hpx=phased()?HZ()+BR:h,hpy=phased()?HZ()+BR:hh;         // phased: only the sweet spot can touch the ball
+    if(Math.abs(ball.x-pad.x)<hpx&&Math.abs(ball.y-pad.y)<hpy){
       if(MODE==="test"&&held&&stamina>0.05){                     // CATCH: hold left-click as it lands
         ball.caught=true;ball.cox=ball.x-pad.x;ball.coy=ball.y-pad.y;ball.z=0;ball.vz=0;ball.vx=0;ball.vy=0;ball.sx=0;ball.sy=0;
         wind={x:0,y:0};PSY.rally++;flash("CAUGHT  -  WIND UP AND RELEASE","#33d6ff");tn(180,.14,"sine",.06,90)}
@@ -1033,8 +1054,8 @@ function drawBreach(t){                                          // GEF MODE: a 
     ctx.beginPath();ctx.moveTo(a0[0],a0[1]);ctx.lineTo(a1[0],a1[1]);ctx.moveTo(b0[0],b0[1]);ctx.lineTo(b1[0],b1[1]);ctx.stroke();
     const mid=P((x1+x2)/2,(y1+y2)/2,0.5);ctx.font="9px Courier New";ctx.fillStyle="rgba(255,176,0,.85)";ctx.fillText(breach.hits+"/"+breach.need,mid[0]-10,mid[1])}
   ctx.restore()}
-function rect(z,x,y,h,style,fill){
-  const a=P(x-h,y-h,z),b=P(x+h,y+h,z);
+function rect(z,x,y,h,style,fill,hy){
+  if(hy===undefined)hy=h;const a=P(x-h,y-hy,z),b=P(x+h,y+hy,z);
   if(fill){ctx.fillStyle=fill;ctx.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1])}
   ctx.strokeStyle=style;const era=fEra();
   if(!era){ctx.strokeRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);return}
@@ -1047,7 +1068,7 @@ function strokePoly(pts,style,fill){
 function paddle(z,x,y,col,fill,t,shape){                         // paddle + glowing hot zone; GEF MODE can mutate the AI paddle's shape
   ctx.lineWidth=2;
   if(shape==="none"){}                                           // TEST MODE shift: the paddle body is phased out
-  else if(!shape||shape==="rect")rect(z,x,y,PHe(),col,fill);
+  else if(!shape||shape==="rect")rect(z,x,y,HW(),col,fill,HH());
   else if(shape==="circle"){
     const p=P(x,y,z),k=(A/F)*sc(z),rx=PHe()*0.92*ASP*k,ry=PHe()*0.92*k;
     ctx.beginPath();ctx.ellipse(p[0],p[1],rx,ry,0,0,7);
@@ -1056,14 +1077,14 @@ function paddle(z,x,y,col,fill,t,shape){                         // paddle + glo
     const verts=shape==="star"?starVerts(x,y,PHe()):shapeVerts(shape,x,y,PHe());
     strokePoly(verts.map(([vx,vy])=>P(vx,vy,z)),col,fill)}
   const pu=0.5+0.5*Math.sin(t*6);ctx.lineWidth=1.5;
-  rect(z,x,y,HZ(),"rgba(255,176,0,"+(.6+.4*pu)+")","rgba(255,176,0,"+(.16+.16*pu)+")");
+  rect(z,x,y,HZW(),"rgba(255,176,0,"+(.6+.4*pu)+")","rgba(255,176,0,"+(.16+.16*pu)+")",HZH());
   const q=P(x,y,z);ctx.strokeStyle="rgba(255,176,0,.9)";ctx.beginPath();ctx.moveTo(q[0]-6,q[1]);ctx.lineTo(q[0]+6,q[1]);ctx.moveTo(q[0],q[1]-6);ctx.lineTo(q[0],q[1]+6);ctx.stroke()}
 
 
 /* ---------- STAGE 10: THE CYLINDER BOSS: the rotating tile cylinder ---------- */
 const MSP0=10,CP0=3,B_COLS=8,B_ROWS=4,B_HP=3;                         // tweak: COMPUTE POINTS (wire hits that destroy the cylinder), panels = columns x rows, hits per panel
-const B_RET_MIN=.6,B_RET_MAX=1.6,B_RET_K=1.3;                                   // speed of a ball ricocheting off the cylinder (tweak)
-const B_SPD0=.28,B_SPDK=.03,B_SPDP=.06,B_SPDMAX=1.2;                // ball speed: opening speed, gain per return, gain per phase, cap (tweak these)
+const B_RET_MIN=.87,B_RET_MAX=2.32,B_RET_K=1.3;                                   // speed of a ball ricocheting off the cylinder (tweak)
+const B_SPD0=.406,B_SPDK=.0435,B_SPDP=.06,B_SPDMAX=1.74;   // all +45%                // ball speed: opening speed, gain per return, gain per phase, cap (tweak these)
 const BZC=1.0,BD=0.14,TAU=Math.PI*2;                             // cylinder centre depth, and how far its curved face bulges toward you
 const BOSS={tiles:[],rot:0,dir:1,phase:1,msp:MSP0,fireT:2.5,fired:0,mindT:3,balls:[],pause:0,spd:B_SPD0,cp:CP0,redT:0,hitCool:0,dead:false};
 const bossRc=()=>F,bossH=()=>F*.92;
@@ -1092,16 +1113,16 @@ function bossStart(){
   BOSS.phase=1;BOSS.msp=MSP0;BOSS.rot=0;BOSS.dir=1;BOSS.fired=0;BOSS.balls=[];BOSS.fireT=2.5;BOSS.pause=1.2;BOSS.spd=B_SPD0;BOSS.cp=CP0;BOSS.redT=0;BOSS.hitCool=0;BOSS.dead=false;BOSS.clean=true;BOSS.rets=0;BOSS.lives0=st.lives;debris=[];
   bossBuild();st.state="serve";RUN.sweet=0;rings=[];bossSync();
   BOSS.sv={x:0,y:0,z:.03,touch:null};st.armAt=performance.now()+700;                  // YOU serve the opening ball
-  show("SWIPE THE PADDLE THROUGH THE BALL TO SERVE","BREAK PANELS (PERFECT HIT = 3 DAMAGE), THEN HIT THE EXPOSED WIRES BEHIND THEM",true);
+  show(SERVE_TXT(),"BREAK PANELS (PERFECT HIT = 3 DAMAGE), THEN HIT THE EXPOSED WIRES BEHIND THEM",true);
   flash("CYLINDER ONLINE  -  "+CP0+" COMPUTE POINTS","#ff4455");tn(80,.7,"sawtooth",.1,30)}
 function bossServeStep(){
-  const sv=BOSS.sv;if(!sv||performance.now()<st.armAt)return;
+  const sv=BOSS.sv;if(!sv||performance.now()<st.armAt||!usingTouch)return;
   const dx=sv.x-pad.x,dy=sv.y-pad.y,h=PHe()+BR,over=Math.abs(dx)<h&&Math.abs(dy)<h,d=Math.hypot(dx,dy);
   if(over){if(!sv.touch||d<sv.touch.d)sv.touch={d,dx,dy,vx:pad.vx,vy:pad.vy};else if(d>sv.touch.d+.015)bossDoServe()}
   else if(sv.touch)bossDoServe()}
-function bossDoServe(){
-  const t=BOSS.sv.touch;BOSS.sv.touch=null;if(Math.hypot(t.vx,t.vy)<SERVE_MIN)return;      // too gentle: not a swipe
-  const hot=Math.abs(t.dx)<HZ()&&Math.abs(t.dy)<HZ(),gain=2.1*(hot?1.8:1),sp=.34*(hot?1.1:1)*(1+Math.min(.12,Math.hypot(t.vx,t.vy)*.025)),cu=()=>hot?(Math.random()<.5?-1:1)*1.1:0;
+function bossDoServe(force){
+  const t=BOSS.sv.touch;BOSS.sv.touch=null;if(!force&&Math.hypot(t.vx,t.vy)<SERVE_MIN)return;      // too gentle: not a swipe
+  const hot=Math.abs(t.dx)<HZ()&&Math.abs(t.dy)<HZ(),gain=2.1*(hot?1.8:1),sp=.493*(hot?1.1:1)*(1+Math.min(.12,Math.hypot(t.vx,t.vy)*.025)),cu=()=>hot?(Math.random()<.5?-1:1)*1.1:0;
   BOSS.balls.push({x:BOSS.sv.x,y:BOSS.sv.y,z:.03,vx:clamp(t.vx,-2,2)*.25+t.dx*1.2,vy:clamp(t.vy,-2,2)*.25+t.dy*1.2,vz:sp,
     sx:clamp(t.vx*gain+cu(),-7,7),sy:clamp(t.vy*gain+cu(),-7,7),tr:[],perfect:hot});
   rings.push({x:BOSS.sv.x,y:BOSS.sv.y,z:0,t:0,hot});tink(hot);if(hot)flash("PERFECT SERVE  -  NEXT TILE HIT COUNTS x3","#ffb000");
@@ -1113,7 +1134,7 @@ function bossFire(){                                              // ONE ball at
   if(BOSS.balls.length)return;
   const Rc=bossRc(),H=bossH(),spd=BOSS.spd,th=(Math.random()*2-1)*1.1,x=Rc*Math.sin(th),y=(Math.random()*2-1)*H*.8,z=bossZ(x)-.01,T=z/spd,
     tx=clamp(pad.x+(Math.random()*2-1)*.9*F,-F,F),ty=clamp(pad.y+(Math.random()*2-1)*.9*F,-F,F),cv2=Math.min(2.5,(BOSS.phase-1)*1+BOSS.fired*.03);
-  BOSS.balls.push({x,y,z,vx:clamp((tx-x)/T,-2.2,2.2),vy:clamp((ty-y)/T,-2.2,2.2),vz:-spd,sx:(Math.random()*2-1)*cv2,sy:(Math.random()*2-1)*cv2,tr:[],perfect:false});
+  BOSS.balls.push({x,y,z,vx:clamp((tx-x)/T,-3.2,3.2),vy:clamp((ty-y)/T,-3.2,3.2),vz:-spd,sx:(Math.random()*2-1)*cv2,sy:(Math.random()*2-1)*cv2,tr:[],perfect:false});
   BOSS.fired++;tn(200+Math.random()*80,.18,"sawtooth",.05,520)}
 function bossWireHit(b){                                          // the ball hit the exposed circuit board
   if(BOSS.hitCool>0)return;
@@ -1121,14 +1142,36 @@ function bossWireHit(b){                                          // the ball hi
   tn(90,.5,"sawtooth",.12,40);tn(1800,.25,"square",.06,200);pulse("rgba(255,40,50,.5)");
   if(BOSS.cp<=0){bossWin();return}
   flash("EXPOSED WIRES HIT  -  CYLINDER LOSES 1 COMPUTE POINT  -  "+BOSS.cp+" LEFT","#ff4455");hud()}
-function bossWin(){                                               // 0 compute points: the cylinder blows apart, and that carries you on
-  BOSS.dead=true;BOSS.balls=[];st.state="bossdead";st.score+=10000;SV.bossWins=(SV.bossWins||0)+1;
-  const Rc=bossRc(),H=bossH();
-  for(let i=0;i<220;i++){const a=Math.random()*TAU,y=(Math.random()*2-1)*H,sp=1.2+Math.random()*3;
-    debris.push({x:Rc*Math.sin(a),y,z:BZC-BD*Math.cos(a),vx:Math.sin(a)*sp+(Math.random()-.5),vy:(y/H)*sp*.6+(Math.random()-.5)*1.5,vz:-Math.cos(a)*sp*.5+(Math.random()-.5)*1.2,
-      r:Math.random()*6.28,rv:(Math.random()-.5)*12,len:.1+Math.random()*.3,t:0,life:1.6+Math.random()*1.4,h:Math.random()})}
-  tn(50,1.3,"sawtooth",.16,14);tn(140,.9,"square",.1,40);setTimeout(()=>tn(70,.8,"sawtooth",.12,20),250);hud();svSave();
-  flash("CYLINDER DESTROYED","#ffb000");setTimeout(bossAfter,2800)}
+function bossWin(){                                               // 0 compute points: a chain of polygon-fractal blasts, then the whole cylinder goes
+  BOSS.dead=true;BOSS.xT=0;BOSS.balls=[];st.state="bossdead";st.score+=10000;SV.bossWins=(SV.bossWins||0)+1;
+  const Rc=bossRc(),H=bossH();BOSS.blasts=[];
+  for(let i=0;i<18;i++){const a=(Math.random()*2-1)*1.3,t0=.05+i*.075+Math.random()*.05;
+    BOSS.blasts.push({t0,x:Rc*Math.sin(a),y:(Math.random()*2-1)*H,z:BZC-BD*Math.cos(a),n:3+Math.floor(Math.random()*4),hue:Math.random()*360,sz:.45+Math.random()*.6,d:2});
+    setTimeout(()=>tn(70+Math.random()*120,.28,"sawtooth",.07,25),t0*1000)}
+  BOSS.blasts.push({t0:1.4,x:0,y:0,z:BZC-BD,n:3,hue:40,sz:3.4,d:4,big:true},{t0:1.5,x:0,y:0,z:BZC-BD,n:6,hue:180,sz:2.4,d:3},{t0:1.7,x:0,y:0,z:BZC-BD,n:4,hue:300,sz:4.6,d:3},{t0:1.95,x:0,y:0,z:BZC-BD,n:5,hue:100,sz:6,d:3});
+  hud();svSave();flash("CYLINDER DESTROYED","#ffb000");
+  setTimeout(bossBang,1400);setTimeout(bossAfter,4600)}
+function bossBang(){                                              // the final blast
+  if(!(BOSS.dead&&st.state==="bossdead"))return;
+  const Rc=bossRc(),H=bossH();flashA=1;shake=1.3;shocks.push({t:0},{t:-.12},{t:-.26},{t:-.4});
+  for(let i=0;i<520;i++){const a=Math.random()*TAU,y=(Math.random()*2-1)*H,sp=1.2+Math.random()*4.5;
+    debris.push({x:Rc*Math.sin(a),y,z:BZC-BD*Math.cos(a),vx:Math.sin(a)*sp+(Math.random()-.5),vy:(y/H)*sp*.6+(Math.random()-.5)*2,vz:-Math.cos(a)*sp*.5+(Math.random()-.5)*1.6,
+      r:Math.random()*6.28,rv:(Math.random()-.5)*14,len:.1+Math.random()*.5,t:0,life:1.8+Math.random()*1.8,h:Math.random()})}
+  tn(45,1.6,"sawtooth",.18,12);tn(120,1.1,"square",.12,30);tn(2200,.5,"sawtooth",.05,60);
+  [0,160,320,520,760].forEach((d,i)=>setTimeout(()=>{tn(60+i*18,.7,"sawtooth",.1,20);shake=Math.max(shake,.9-i*.12)},d))}
+function drawPolyFrac(x,y,R,n,rot,d,al,hue){                     // a polygon with a smaller copy on every corner, recursively
+  ctx.strokeStyle="hsla("+(hue%360)+",100%,"+(58+d*7)+"%,"+al+")";ctx.beginPath();
+  const v=[];for(let k=0;k<n;k++){const a=rot+k/n*TAU;v.push([x+Math.cos(a)*R,y+Math.sin(a)*R])}
+  v.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.closePath();ctx.stroke();
+  if(d>0)for(const q of v)drawPolyFrac(q[0],q[1],R*.5,n,rot+.45,d-1,al*.88,hue+22)}
+function drawBossBlast(){
+  ctx.save();ctx.globalCompositeOperation="lighter";ctx.lineWidth=1.6;ctx.lineJoin="round";const k=Math.min(W,H)/720;
+  for(const b of BOSS.blasts||[]){
+    const age=BOSS.xT-b.t0;if(age<0||age>2.6)continue;
+    const p=P(b.x,b.y,b.z),R=(14+age*(b.big?300:230))*b.sz*k,al=clamp(1-age/2.6,0,1),rot=age*(b.big?1.1:2.4)*(b.n%2?1:-1);
+    drawPolyFrac(p[0],p[1],R,b.n,rot,b.d,al,b.hue+age*120);
+    if(b.big){ctx.lineWidth=3;drawPolyFrac(p[0],p[1],R*.6,3,-rot*1.7,2,al*.9,b.hue+180+age*200);ctx.lineWidth=1.6}}
+  ctx.restore()}
 function bossAfter(){                                             // the explosion has played out: on to stage 11 (or the secret stage)
   if(!(BOSS.dead&&st.state==="bossdead"))return;
   const secret=BOSS.clean&&BOSS.rets>0;BOSS.dead=false;setBoss(false);debris=[];shocks=[];
@@ -1157,6 +1200,7 @@ function bossHitTile(b){                                          // a returned 
   b.vz=-clamp(inSp*B_RET_K,B_RET_MIN,B_RET_MAX);b.vx=clamp(b.vx,-1.5,1.5);b.vy=clamp(b.vy,-1.5,1.5);   // ricochet: comes back at the speed you hit it in at, with no spin
   b.z=bossZ(b.x)-.005;b.perfect=false;b.sx=0;b.sy=0;hud();return true}  // no deceleration: a returned ball keeps its sideways speed and gains forward speed
 function bossStep(dt){
+  if(BOSS.dead)BOSS.xT+=dt;
   BOSS.redT=Math.max(0,BOSS.redT-dt);BOSS.hitCool=Math.max(0,BOSS.hitCool-dt);
   if(st.state==="serve"){BOSS.rot+=BOSS.dir*.2*dt;bossServeStep();return}
   if(st.state!=="play")return;
@@ -1213,11 +1257,12 @@ function drawBoard(pts,tile,A0,A1,y0,y1,shade,red,t){            // the terminal
 function drawBoss(t,dt){
   const Rc=bossRc(),H=bossH(),dth=TAU/B_COLS,rowH=2*H/B_ROWS;
   ctx.save();ctx.lineJoin="round";
-  for(const yy of (BOSS.dead?[]:[-H,H])){ctx.lineWidth=1.5;                                   // the cylinder's rims
+  const gone=BOSS.dead&&BOSS.xT>=1.4;
+  for(const yy of (gone?[]:[-H,H])){ctx.lineWidth=1.5;                                   // the cylinder's rims
     for(let k=0;k<64;k++){const a0=k/64*TAU,a1=(k+1)/64*TAU,front=Math.cos((a0+a1)/2)>0,p=P(Rc*Math.sin(a0),yy,BZC-BD*Math.cos(a0)),q=P(Rc*Math.sin(a1),yy,BZC-BD*Math.cos(a1));
       ctx.strokeStyle=front?"rgba(255,68,85,.8)":"rgba(255,68,85,.18)";ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.stroke()}}
-  const red=BOSS.redT>0?(.5+.5*Math.sin(t*38))*Math.min(1,BOSS.redT*3):0;                // the whole cylinder flashes red when its wires are hit
-  for(let c=0;c<(BOSS.dead?0:B_COLS);c++){
+  const red=BOSS.dead?(.5+.5*Math.sin(t*40)):BOSS.redT>0?(.5+.5*Math.sin(t*38))*Math.min(1,BOSS.redT*3):0;                // the whole cylinder flashes red when its wires are hit
+  for(let c=0;c<(gone?0:B_COLS);c++){
     const thF=(((c+.5)*dth+BOSS.rot+Math.PI)%TAU+TAU)%TAU-Math.PI,A0=thF-dth*.46,A1=thF+dth*.46;
     const a0=Math.max(A0,-Math.PI/2),a1=Math.min(A1,Math.PI/2);if(a1-a0<.04)continue;
     const shade=.3+.7*Math.cos(clamp(thF,-Math.PI/2,Math.PI/2));
@@ -1242,6 +1287,7 @@ function drawBoss(t,dt){
     const p=P(b.x,b.y,b.z);ctx.shadowColor=glow;ctx.shadowBlur=b.perfect?26:16;ctx.fillStyle=col;ctx.beginPath();ctx.arc(p[0],p[1],BR*(A/F)*sc(b.z),0,7);ctx.fill();ctx.shadowBlur=0;
     if(!out){const q=P(b.x,b.y,0),k=clamp(1-b.z,0,1),r=BR*(A/F),on=Math.abs(b.x-pad.x)<PHe()+BR&&Math.abs(b.y-pad.y)<PHe()+BR;   // landing reticle
       ctx.strokeStyle=(on?"rgba(51,255,119,":"rgba(255,68,85,")+(.12+.45*k*k)+")";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(q[0],q[1],r,0,7);ctx.stroke()}}
+  if(BOSS.dead)drawBossBlast();
   paddle(0,pad.x,pad.y,"#33ff77","rgba(51,255,119,.13)",t,"rect");
   ctx.restore()}
 /* ---------- SECRET STAGE: FREE YOUR MIND (beat the cylinder with every return a sweet spot and not one miss) ---------- */
@@ -1333,9 +1379,9 @@ function drawGhosts(t,dt){
 function draw(t,dt){
   audioFrame(t,dt);
   ctx.fillStyle="#020804";ctx.fillRect(0,0,W,H);
-  ctx.save();if(shake>0.01&&!bossOn)ctx.translate((Math.random()-.5)*shake*26,(Math.random()-.5)*shake*26);
+  ctx.save();if(shake>0.01&&(!bossOn||BOSS.dead))ctx.translate((Math.random()-.5)*shake*26,(Math.random()-.5)*shake*26);
   drawFractal(t,dt);entities(t,dt);bgGames(t,dt);drawGhosts(t,dt);
-  if(bossOn){ctx.fillStyle="rgba(2,8,4,.76)";ctx.fillRect(0,0,W,H)}   // boss mode: the background is pushed way down so the cylinder reads clearly
+  if(bossOn){const dim=BOSS.dead&&BOSS.xT>1.4?Math.max(.15,.76-(BOSS.xT-1.4)*.35):.76;ctx.fillStyle="rgba(2,8,4,"+dim+")";ctx.fillRect(0,0,W,H)}   // boss mode: the background is pushed way down so the cylinder reads clearly
   ctx.save();ctx.translate(cx,cy);ctx.rotate(vRot);ctx.scale(vScl*(1+(MODE!=="classic"&&!bossOn?MB.v*.012:0)),vScl*(1+(MODE!=="classic"&&!bossOn?MB.v*.012:0)));ctx.translate(-cx,-cy);   // the play field (rotates at 30+)
   const lv=lvl(),beat=(lv>=4?0.06*(0.5+0.5*Math.sin(t*(4+lv*0.5))):0)+(MODE!=="classic"&&!bossOn?MB.v*.22:0);
   if(wa>0.02){                                                    // the tunnel walls (they explode at level 10)
@@ -1383,7 +1429,7 @@ function draw(t,dt){
       if(wl>.05){ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(p[0]+wind.x*18,p[1]+wind.y*18);ctx.stroke()}}}
   paddle(0,pad.x,pad.y,"#33ff77","rgba(51,255,119,.13)",t,phased()?"none":"rect");
   if(st.state==="play"&&ball.vz<0){const q=P(ball.x,ball.y,0),k=clamp(1-ball.z,0,1),r=BR*(A/F),
-      pr=(phased()?HZ():PHe())+BR,on=Math.abs(ball.x-pad.x)<pr&&Math.abs(ball.y-pad.y)<pr;
+      prx=(phased()?HZ():HW())+BR,pry=(phased()?HZ():HH())+BR,on=Math.abs(ball.x-pad.x)<prx&&Math.abs(ball.y-pad.y)<pry;
     ctx.strokeStyle=(on?"rgba(51,255,119,":"rgba(255,68,85,")+(.15+.55*k*k)+")";ctx.lineWidth=1.5;
     ctx.beginPath();ctx.arc(q[0],q[1],r,0,7);ctx.moveTo(q[0]-r*1.6,q[1]);ctx.lineTo(q[0]-r*.6,q[1]);ctx.moveTo(q[0]+r*.6,q[1]);ctx.lineTo(q[0]+r*1.6,q[1]);
     ctx.moveTo(q[0],q[1]-r*1.6);ctx.lineTo(q[0],q[1]-r*.6);ctx.moveTo(q[0],q[1]+r*.6);ctx.lineTo(q[0],q[1]+r*1.6);ctx.stroke()}
@@ -1394,7 +1440,7 @@ function draw(t,dt){
   ctx.restore();
   if(lvl()>=34){invT-=dt;if(invT<=0){invA=.9;invT=5+Math.random()*8}}   // 35+: the colours invert without warning
   if(invA>0.02){ctx.save();ctx.globalCompositeOperation="difference";ctx.fillStyle="rgba(255,255,255,"+invA+")";ctx.fillRect(0,0,W,H);ctx.restore();invA=Math.max(0,invA-dt*2.5)}
-  if(!bossOn&&flashA>0.01){ctx.fillStyle="rgba(255,255,255,"+flashA*.55+")";ctx.fillRect(0,0,W,H)}
+  if((!bossOn||BOSS.dead)&&flashA>0.01){ctx.fillStyle="rgba(255,255,255,"+flashA*.55+")";ctx.fillRect(0,0,W,H)}
   const ins=insane();                                              // glitch: shifted slices of the screen
   if(!bossOn&&ins>0&&glitchOn&&(frameN++%2===0)){
     const n=2+Math.floor(ins*5);
@@ -1445,199 +1491,6 @@ const portraitBlock=()=>COARSE.matches&&innerHeight>innerWidth;      // phones h
 function touchPaddle(e,r){                                         // the paddle floats above your finger so it stays visible (no offset at the very bottom edge)
   const my=e.clientY-r.top,off=e.pointerType==="touch"?Math.min(56,Math.max(0,(r.height-my)*.6)):0;
   pad.mx=e.clientX-r.left;pad.my=my-off;padFromScreen();pad.tx=clamp(pad.rx,-padLim(),padLim());pad.ty=clamp(pad.ry,-padLim(),padLim())}
-/* ---------- ONLINE 1V1: two players through a tiny relay (worker.js); inside Discord the room is the activity instance ---------- */
-// Both players run this same code in their OWN frame: you are always at z=0, the opponent always at z=1.
-// Every ball sent over the wire is flipped into the receiver's frame (x -> -x, z -> 1-z). Each player is the
-// referee for their own end, so a hit is judged on the screen of the person making it - no lag on your own paddle.
-// Between hits the flight is deterministic (fixed 120 Hz steps), so only hits and misses need to be sent.
-const RELAY="wss://hellball.hellball-discord.workers.dev",WIN_PTS=7,NSTEP=1/120,CODE_AB="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-const net={ws:null,host:false,live:false,full:false,leaving:false,code:"",room:"",me:0,them:0,server:"me",lastLoser:"them",
-  meReady:false,themReady:false,meRe:false,themRe:false,ox:0,oy:0,ovx:0,ovy:0,acc:0,rtt:120,padT:0,lastMsg:0};
-const $=id=>document.getElementById(id);
-const inDiscord=()=>/[?&]frame_id=/.test(location.search);
-const baseURL=()=>location.href.split(/[?#]/)[0];
-const inviteURL=()=>baseURL()+(net.koth?"#koth=":"#join=")+net.code;
-function newCode(){let s="";for(let i=0;i<5;i++)s+=CODE_AB[Math.floor(Math.random()*CODE_AB.length)];return s}
-function netSend(m){if(net.ws&&net.ws.readyState===1)try{net.ws.send(JSON.stringify(m))}catch(e){}}
-function lobby(o){                                               // o: {status, link, ready}
-  $("modesel").classList.add("hidden");$("lobby").classList.remove("hidden");
-  $("lbCode").textContent=inDiscord()?"":net.code;$("lbStatus").innerHTML=o.status;
-  const link=!!o.link&&!inDiscord();["lbLink","lbCopy"].forEach(id=>$(id).classList.toggle("hidden",!link));if(link)$("lbLink").value=inviteURL();
-  $("lbReady").classList.toggle("hidden",!o.ready)}
-function waitMsg(){return inDiscord()?"WAITING FOR AN OPPONENT<br>ANYONE ELSE IN THIS ACTIVITY WHO PICKS 1V1 ONLINE LANDS RIGHT HERE."
-  :"WAITING FOR AN OPPONENT<br>COPY THE INVITE LINK AND SEND IT. WHOEVER OPENS IT LANDS RIGHT HERE."}
-function netOpen(code,koth){                                     // code given = joining from an invite link; koth = KING OF THE HILL room
-  MODE="online";st.state="lobby";net.full=false;net.leaving=false;net.live=false;net.koth=!!koth;net.ks=null;net.spec=false;net.kPend=false;show("");
-  if(inDiscord()){const id=window.DISCORD_INSTANCE;if(!id){lobby({status:"STILL CONNECTING TO DISCORD...<br>TRY AGAIN IN A SECOND."});return}
-    net.code="";net.room=(koth?"kdc-":"dc-")+id}
-  else{net.code=code||newCode();net.room=(koth?"kweb-":"web-")+net.code}
-  lobby({status:"CONNECTING..."});
-  const url=inDiscord()?(location.protocol==="https:"?"wss://":"ws://")+location.host+"/.proxy/ws/"+encodeURIComponent(net.room)   // Discord: through the activity's /ws URL mapping
-    :/\.workers\.dev$|^(localhost|127\.0\.0\.1)$/.test(location.hostname)?(location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws/"+encodeURIComponent(net.room)
-    :RELAY+"/ws/"+encodeURIComponent(net.room);                // anywhere else (e.g. GitHub Pages): the relay on Cloudflare
-  let ws;try{ws=net.ws=new WebSocket(url)}catch(e){lobby({status:"COULD NOT REACH THE GAME SERVER."});return}
-  ws.onmessage=e=>{if(net.ws!==ws)return;let m;try{m=JSON.parse(e.data)}catch(_){return}
-    net.lastMsg=performance.now();
-    if(net.koth){kothMsg(m);return}
-    if(m.t==="wait"){net.host=true;lobby({status:waitMsg(),link:true})}
-    else if(m.t==="peer"){net.host=!!m.host;net.live=true;net.meReady=net.themReady=false;
-      lobby({status:"OPPONENT CONNECTED<br>CLICK READY WHEN YOU ARE.",ready:true})}
-    else if(m.t==="left"){if(net.live)netLost()}
-    else if(m.t==="full"){net.full=true;lobby({status:inDiscord()?"TWO PEOPLE IN THIS ACTIVITY ARE ALREADY PLAYING 1V1.<br>WAIT FOR THEIR MATCH TO END, THEN TRY AGAIN.":"THAT LOBBY ALREADY HAS TWO PLAYERS."})}
-    else netMsg(m)};
-  ws.onclose=()=>{if(net.ws!==ws)return;net.ws=null;const was=net.live;net.live=false;
-    if(net.leaving||net.full||MODE!=="online")return;reset();balls=[];st.state="lobby";show("");
-    lobby({status:(was?"CONNECTION LOST.":"COULD NOT REACH THE GAME SERVER.")+"<br>GO BACK TO THE MENU AND PICK THE MODE AGAIN TO RETRY."})}}
-function netLeave(){net.leaving=true;netSend({t:"bye"});try{net.ws&&net.ws.close()}catch(e){}net.ws=null;net.live=false;$("lobby").classList.add("hidden")}
-function netLost(){
-  if(net.koth){net.live=false;reset();st.state="lobby";show("");try{net.ws&&net.ws.close()}catch(e){}lobby({status:"CONNECTION LOST.<br>GO BACK TO THE MENU AND PICK THE MODE AGAIN TO RETRY."});return}
-  net.live=false;reset();balls=[];st.state="lobby";show("");hud();
-  lobby({status:"YOUR OPPONENT LEFT.<br>"+waitMsg().split("<br>")[1],link:true})}
-setInterval(()=>{if(!net.live)return;const n=performance.now();netSend({t:"ping",ts:n});   // a timer, not a frame: keeps going in a background tab
-  if(n-net.lastMsg>10000)netLost()},1000);
-addEventListener("pagehide",()=>{if(net.ws)netSend({t:"bye"})});   // closing the tab tells the other side right away
-$("lbReady").addEventListener("click",()=>{musicStart();net.meReady=true;netSend({t:"ready"});
-  lobby({status:"WAITING FOR YOUR OPPONENT TO READY UP..."});netMaybeStart()});
-$("lbCopy").addEventListener("click",()=>{const u=inviteURL(),b=$("lbCopy"),done=()=>{b.textContent="COPIED - PASTE IT ANYWHERE";setTimeout(()=>b.textContent="COPY INVITE LINK",1800)},
-    old=()=>{$("lbLink").select();try{document.execCommand("copy")}catch(e){}done()};
-  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(u).then(done,old);else old()});
-$("lbLink").addEventListener("focus",e=>e.target.select());
-$("lbBack").addEventListener("click",()=>{if(location.hash)history.replaceState(null,"",baseURL()+location.search);goMenu()});
-$("mO").addEventListener("click",()=>{musicStart();netOpen()});
-function netMaybeStart(){if(net.meReady&&net.themReady){net.meReady=net.themReady=false;netStart(net.host?"me":"them")}}
-function netStart(server){                                       // fresh match: 3-2-1, then the first serve
-  $("lobby").classList.add("hidden");net.me=net.them=0;net.meRe=net.themRe=false;st.level=0;st.score=0;balls=[];reset();syncField();
-  st.state="count";hud();let n=3;
-  const cd=()=>{if(st.state!=="count")return;
-    if(n>0){show(String(n),"FIRST TO "+WIN_PTS+" - MOVE YOUR MOUSE TO AIM");tn(440,.1,"square",.05);n--;setTimeout(cd,700)}
-    else{tn(880,.2,"square",.05);netServe(server)}};cd()}
-function netServe(server){                                       // the player who just lost the point serves
-  net.server=server;reset();if(server==="them")ball.z=0.97;
-  st.state="serve";st.armAt=performance.now()+700;st.first=true;hud();
-  show(server==="me"?"YOUR SERVE":"OPPONENT SERVES",server==="me"?"SWIPE THE PADDLE THROUGH THE BALL":"GET READY",true)}
-function netHit(serve){const b=ball;
-  netSend({t:"hit",serve,b:{x:b.x,y:b.y,z:b.z,vx:b.vx,vy:b.vy,vz:b.vz,sx:b.sx,sy:b.sy,hits:b.hits,hot:!!b.hot}})}
-function netBall(h,quiet){                                       // one fixed physics step; true = stop stepping this frame
-  if(ball.hold)return true;
-  ball.vx+=ball.sx*h;ball.vy+=ball.sy*h;ball.x+=ball.vx*h;ball.y+=ball.vy*h;ball.z+=ball.vz*h;
-  let bn=false;
-  if(ball.x>F){ball.x=F;ball.vx=-ball.vx;bn=true}if(ball.x<-F){ball.x=-F;ball.vx=-ball.vx;bn=true}
-  if(ball.y>F){ball.y=F;ball.vy=-ball.vy;bn=true}if(ball.y<-F){ball.y=-F;ball.vy=-ball.vy;bn=true}
-  if(bn&&!quiet){bounceSnd();if(wa<.3)bflash.push({z:ball.z,t:0})}
-  if(ball.z>=1&&ball.vz>0){ball.z=1;ball.hold=true;return true}  // their end: their screen decides, this one waits for the verdict
-  if(ball.z<=0&&ball.vz<0){                                      // your end: your screen decides
-    if(quiet)return true;
-    const hh=PHe()+BR;
-    if(Math.abs(ball.x-pad.x)<hh&&Math.abs(ball.y-pad.y)<hh){const hot=Math.abs(ball.x-pad.x)<HZ()&&Math.abs(ball.y-pad.y)<HZ();
-      strike("p",ball.x-pad.x,ball.y-pad.y,pad.vx,pad.vy,false);ball.hot=hot;netHit(false)}
-    else{ball.z=0;ball.hold=true;if(net.koth)netSend({t:"kmiss",ep:net.ep});else{netSend({t:"miss"});netPoint("them")}}
-    return true}
-  return false}
-function netStep(dt){
-  ai.x+=(net.ox-ai.x)*Math.min(1,dt*20);ai.y+=(net.oy-ai.y)*Math.min(1,dt*20);ai.vx=net.ovx;ai.vy=net.ovy;
-  if(net.spec)return kothSpecStep(dt);
-  const n=performance.now();if(net.live&&n-net.padT>33){net.padT=n;netSend({t:"p",x:pad.x,y:pad.y,vx:pad.vx,vy:pad.vy})}
-  if(st.state==="serve"){if(net.server==="me")serveStep();return}
-  if(st.state!=="play")return;
-  net.acc+=dt;while(net.acc>=NSTEP){net.acc-=NSTEP;if(netBall(NSTEP,false)){net.acc=0;break}}
-  trail.push([ball.x,ball.y,ball.z]);if(trail.length>14)trail.shift()}
-function netMsg(m){
-  if(!m||!m.t)return;
-  if(m.t==="ping")netSend({t:"pong",ts:m.ts});
-  else if(m.t==="pong"){net.rtt=net.rtt*.7+(performance.now()-m.ts)*.3;hud()}
-  else if(m.t==="p"){net.ox=-m.x;net.oy=m.y;net.ovx=-m.vx;net.ovy=m.vy}
-  else if(m.t==="ready"){net.themReady=true;if(!net.meReady)lobby({status:"YOUR OPPONENT IS READY.<br>CLICK READY TO START.",ready:true});netMaybeStart()}
-  else if(m.t==="hit"){
-    if(st.state!=="play"&&st.state!=="serve"&&st.state!=="between")return;
-    const b=m.b;Object.assign(ball,{x:-b.x,y:b.y,z:1-b.z,vx:-b.vx,vy:b.vy,vz:-b.vz,sx:-b.sx,sy:b.sy,hits:b.hits,hot:b.hot,hold:false,touch:null,cork:null});
-    if(st.state!=="play"){st.state="play";show("")}
-    rings.push({x:ball.x,y:ball.y,z:ball.z,t:0,hot:b.hot});tink(b.hot);if(b.hot)flash("OPPONENT SWEET SPOT  +CURVE +SPEED","#ff4455");
-    net.acc=0;const ff=Math.min(.15,net.rtt/2000);              // catch up by the one-way trip, so both screens see the ball in the same place
-    for(let t=0;t<ff;t+=NSTEP)if(netBall(NSTEP,true))break}
-  else if(m.t==="miss"){if(st.state==="play"){burst(ball.x,ball.y,1);netPoint("me")}}
-  else if(m.t==="rematch"){net.themRe=true;if(st.state==="over"&&!net.meRe)show(msg.firstChild.textContent,"YOUR OPPONENT WANTS A REMATCH - CLICK TO ACCEPT");netMaybeRematch()}
-  else if(m.t==="bye"){if(net.live)netLost()}}
-function netPoint(who){
-  if(who==="me")net.me++;else net.them++;
-  st.level=Math.min(8,net.me+net.them);                          // the field heats up as the match goes on (capped below the level-10 wall blast)
-  if(who==="me"){pulse("rgba(51,255,119,.35)");tn(660,.15,"square",.04);setTimeout(()=>tn(990,.25,"square",.04),120);flash("POINT   "+net.me+" - "+net.them,"#33ff77")}
-  else{pulse("rgba(255,68,85,.45)");tn(130,.4,"sawtooth",.07,60);flash("OPPONENT SCORES   "+net.me+" - "+net.them,"#ff4455");psyEvent("miss")}
-  hud();
-  if(net.me>=WIN_PTS||net.them>=WIN_PTS){
-    const won=net.me>net.them;net.lastLoser=won?"them":"me";net.meRe=net.themRe=false;st.state="over";
-    show(won?"YOU WIN":"YOU LOSE",net.me+" - "+net.them+"   CLICK FOR A REMATCH");
-    if(won)[784,988,1175,1568].forEach((f,i)=>setTimeout(()=>tn(f,.18,"square",.045),i*90));return}
-  st.state="between";setTimeout(()=>{if(st.state==="between")netServe(who==="me"?"them":"me")},900)}
-function netClick(){if(st.state==="over"&&!net.meRe){net.meRe=true;netSend({t:"rematch"});
-  show(msg.firstChild.textContent,"WAITING FOR YOUR OPPONENT...");netMaybeRematch()}}
-function netMaybeRematch(){if(net.meRe&&net.themRe)netStart(net.lastLoser)}
-function netHud(){if(net.koth)return kothHud();$("s").textContent="1V1 ONLINE   YOU "+net.me+" - "+net.them+" OPP   FIRST TO "+WIN_PTS+(net.live?"   PING "+Math.round(net.rtt)+"MS":"")}
-/* ---------- KING OF THE HILL: up to 4 in a room, two on court, the rest watch in line; every point the loser goes to the back ---------- */
-const KOTH_WIN=5;
-const kname=id=>net.ks&&id===net.ks.you?"YOU":"P"+id;
-function kothMsg(m){
-  if(m.t==="ks"){kothState(m);return}
-  if(m.t==="full"){net.full=true;lobby({status:"THIS KING OF THE HILL IS FULL ("+m.max+" PLAYERS).<br>TRY AGAIN WHEN SOMEONE LEAVES."});return}
-  if(m.t==="pong"){net.rtt=net.rtt*.7+(performance.now()-m.ts)*.3;hud();return}
-  if(m.ep!==undefined&&m.ep!==net.ep)return;                   // left over from an earlier point
-  if(net.spec)kothSpecMsg(m);
-  else if(m.from===net.opp)netMsg(m)}
-function kothState(s){
-  net.ks=s;net.ep=s.ep;net.live=true;
-  if(s.pt){kothPoint(s);return}
-  if(net.kPend){hud();return}                                    // a point is on screen: the timer applies the newest state
-  kothApply(s)}
-function kothPoint(s){                                           // a point was decided: show it, then swap
-  const p=s.pt,me=s.you;
-  st.state="between";ball.hold=true;net.kPend=true;
-  if(p.loser===me){pulse("rgba(255,68,85,.45)");tn(130,.4,"sawtooth",.07,60);psyEvent("miss")}
-  else if(p.winner===me){pulse("rgba(51,255,119,.35)");tn(660,.15,"square",.04);setTimeout(()=>tn(990,.25,"square",.04),120)}
-  if(p.loser===net.far)burst(ball.x,ball.y,1);
-  if(p.won){show(p.won===me?"YOU ARE KING OF THE HILL":kname(p.won)+" IS KING OF THE HILL",KOTH_WIN+" IN A ROW - NEW GAME STARTING");
-    if(p.won===me)[784,988,1175,1568].forEach((f,i)=>setTimeout(()=>tn(f,.18,"square",.045),i*90))}
-  else flash(p.winner===me?"POINT   STREAK "+s.streak+"/"+KOTH_WIN:p.loser===me?"YOU LOST THE POINT"+(s.line.includes(me)?"   BACK OF THE LINE":""):kname(p.winner)+" TAKES THE POINT",
-    p.winner===me?"#33ff77":p.loser===me?"#ff4455":"#ffb000");
-  hud();const ep=s.ep;
-  setTimeout(()=>{if(net.kPend&&net.ks&&net.ks.ep>=ep&&MODE==="online"&&net.koth)kothApply(net.ks)},p.won?3000:900)}
-function kothApply(s){
-  net.kPend=false;const me=s.you,n=(s.champ!=null?1:0)+(s.chal!=null?1:0)+s.line.length;
-  if(s.champ==null||s.chal==null){reset();balls=[];st.state="lobby";net.spec=false;show("");hud();
-    lobby({status:"KING OF THE HILL<br>WAITING FOR MORE PLAYERS ("+n+"/"+s.max+")<br>"+(inDiscord()?"ANYONE ELSE IN THIS ACTIVITY CAN PICK KING OF THE HILL TO JOIN.":"SEND THE INVITE LINK - UP TO "+s.max+" CAN PLAY."),link:true});return}
-  $("lobby").classList.add("hidden");$("modesel").classList.add("hidden");
-  net.spec=me!==s.champ&&me!==s.chal;
-  net.near=net.spec?s.champ:me;net.far=net.spec?s.chal:(me===s.champ?s.chal:s.champ);net.opp=net.spec?null:net.far;
-  st.level=Math.min(8,s.streak);balls=[];reset();
-  net.server=s.serve===net.near?"me":"them";if(net.server==="them")ball.z=0.97;
-  net.acc=0;st.state="serve";st.armAt=performance.now()+600;st.first=true;hud();
-  if(net.spec){const pos=s.line.indexOf(me);
-    show("SPECTATING   "+kname(s.champ)+" VS "+kname(s.chal),pos===0?"YOU'RE NEXT UP":"YOU ARE #"+(pos+1)+" IN LINE",true)}
-  else show(net.server==="me"?"YOUR SERVE":"OPPONENT SERVES",(me===s.champ?"YOU HOLD THE HILL   STREAK "+s.streak+"/"+KOTH_WIN:"KNOCK "+kname(s.champ)+" OFF THE HILL")+(s.line.length?"   //   NEXT UP: "+kname(s.line[0]):""),true)}
-function kothSpecMsg(m){                                         // spectators see the match from the king's end
-  const near=m.from===net.near;
-  if(m.t==="p"){if(near){net.sx=m.x;net.sy=m.y}else{net.ox=-m.x;net.oy=m.y;net.ovx=-m.vx;net.ovy=m.vy}}
-  else if(m.t==="hit"){const b=m.b;
-    Object.assign(ball,near?{x:b.x,y:b.y,z:b.z,vx:b.vx,vy:b.vy,vz:b.vz,sx:b.sx,sy:b.sy}:{x:-b.x,y:b.y,z:1-b.z,vx:-b.vx,vy:b.vy,vz:-b.vz,sx:-b.sx,sy:b.sy},
-      {hits:b.hits,hot:b.hot,hold:false,touch:null,cork:null});
-    if(st.state!=="play")st.state="play";
-    rings.push({x:ball.x,y:ball.y,z:ball.z,t:0,hot:b.hot});tink(b.hot);net.acc=0}}
-function kothSpecStep(dt){
-  net.kx=(net.kx||0)+((net.sx||0)-(net.kx||0))*Math.min(1,dt*20);net.ky=(net.ky||0)+((net.sy||0)-(net.ky||0))*Math.min(1,dt*20);
-  pad.x=net.kx;pad.y=net.ky;pad.vx=pad.vy=0;
-  if(st.state!=="play")return;
-  net.acc+=dt;
-  while(net.acc>=NSTEP){net.acc-=NSTEP;if(ball.hold){net.acc=0;break}
-    ball.vx+=ball.sx*NSTEP;ball.vy+=ball.sy*NSTEP;ball.x+=ball.vx*NSTEP;ball.y+=ball.vy*NSTEP;ball.z+=ball.vz*NSTEP;
-    let bn=false;
-    if(ball.x>F){ball.x=F;ball.vx=-ball.vx;bn=true}if(ball.x<-F){ball.x=-F;ball.vx=-ball.vx;bn=true}
-    if(ball.y>F){ball.y=F;ball.vy=-ball.vy;bn=true}if(ball.y<-F){ball.y=-F;ball.vy=-ball.vy;bn=true}
-    if(bn){bounceSnd();if(wa<.3)bflash.push({z:ball.z,t:0})}
-    if(ball.z>=1&&ball.vz>0){ball.z=1;ball.hold=true}else if(ball.z<=0&&ball.vz<0){ball.z=0;ball.hold=true}}
-  trail.push([ball.x,ball.y,ball.z]);if(trail.length>14)trail.shift()}
-function kothHud(){const s=net.ks;if(!s){$("s").textContent="KING OF THE HILL";return}
-  $("s").textContent="KOTH  "+(s.champ!=null?"KING "+kname(s.champ)+" "+"★".repeat(s.streak)+"☆".repeat(Math.max(0,KOTH_WIN-s.streak)):"")+
-    (s.chal!=null?"  VS "+kname(s.chal):"")+"  NEXT: "+(s.line.length?kname(s.line[0]):"-")+(net.live?"  "+Math.round(net.rtt)+"MS":"")}
-$("mK").addEventListener("click",()=>{musicStart();netOpen(null,true)});
 reset();hud();profInit();
-{const j=location.hash.match(/(join|koth)=([A-Z0-9]{5})(?![A-Z0-9])/i);if(j&&!inDiscord())netOpen(j[2].toUpperCase(),j[1].toLowerCase()==="koth")}   // opened from an invite link: straight to the lobby
 requestAnimationFrame(frame);
 </script></body></html>
