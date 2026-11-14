@@ -101,13 +101,19 @@ const LB_BOARD = /^(normal|hard|gef|classic|1v1|koth|daily-\d{4}-\d{2}-\d{2})$/,
 const lbName = n => String(n || "").toUpperCase().replace(/[^A-Z0-9 _.-]/g, "").trim().slice(0, 12);
 const lbCORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
 const lbJSON = (o, status) => new Response(JSON.stringify(o), { status: status || 200, headers: Object.assign({ "Content-Type": "application/json", "Cache-Control": "no-store" }, lbCORS) });
+// public id for a player: a one-way hash of their secret pid, so board rows never reveal the pid itself
+// (the pid is what lets a player write to their own entries; anyone who had it could post as them)
+const pubId = async pid => { const h = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("hbu|" + pid)));
+  return Array.from(h.slice(0, 6), b => b.toString(16).padStart(2, "0")).join(""); };
+const PUB_ID = /^[a-f0-9]{12}$/;
 export class Board {
   constructor(state) { this.s = state.storage; }
   async view(b, pid) {
     const list = (await this.s.get("b:" + b)) || [], top = list.slice(0, LB_SHOW);
     const names = top.length ? await this.s.get(top.map(e => "n:" + e.p)) : new Map();
     const i = pid ? list.findIndex(e => e.p === pid) : -1;
-    return { board: b, top: top.map(e => ({ n: names.get("n:" + e.p) || "PLAYER", s: e.s, l: e.l || 0, me: e.p === pid, id: e.p })),
+    const ids = await Promise.all(top.map(e => pubId(e.p)));
+    return { board: b, top: top.map((e, k) => ({ n: names.get("n:" + e.p) || "PLAYER", s: e.s, l: e.l || 0, me: e.p === pid, id: ids[k] })),
       you: i >= 0 ? { rank: i + 1, s: list[i].s } : null, total: list.length };
   }
   async fetch(req) {
@@ -115,9 +121,9 @@ export class Board {
     if (req.method === "GET") {
       const prof = u.searchParams.get("prof") || "";                // HELLBALL ULTIMATE: a player's public stat sheet
       if (prof) {
-        if (!LB_PID.test(prof)) return lbJSON({ error: "bad player" }, 400);
-        const got = await this.s.get(["p:" + prof, "n:" + prof]);
-        return lbJSON({ n: got.get("n:" + prof) || "PLAYER", p: got.get("p:" + prof) || null });
+        if (!PUB_ID.test(prof)) return lbJSON({ error: "bad player" }, 400);
+        const rec = (await this.s.get("q:" + prof)) || null;
+        return lbJSON({ n: rec ? rec.n : "PLAYER", p: rec ? rec.p : null });
       }
       const b = u.searchParams.get("b") || "", pid = u.searchParams.get("pid") || "";
       if (!LB_BOARD.test(b)) return lbJSON({ error: "bad board" }, 400);
@@ -138,7 +144,9 @@ export class Board {
         else if (typeof v === "string") clean[k] = v.slice(0, 24);
         else if (Array.isArray(v)) clean[k] = v.slice(0, 16).map(x => Math.max(0, Math.min(1e6, Math.round(Number(x) || 0))));
       }
-      await this.s.put("p:" + m.pid, clean);
+      const json = JSON.stringify(clean);
+      if (json.length > 3000) return lbJSON({ error: "profile too big" }, 413);
+      await this.s.put("q:" + (await pubId(m.pid)), { n: name || (await this.s.get("n:" + m.pid)) || "PLAYER", p: clean });
       return lbJSON({ ok: true });
     }
     if (!LB_BOARD.test(m.b || "")) return lbJSON({ error: "bad board" }, 400);
