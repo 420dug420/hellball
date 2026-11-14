@@ -107,12 +107,18 @@ export class Board {
     const list = (await this.s.get("b:" + b)) || [], top = list.slice(0, LB_SHOW);
     const names = top.length ? await this.s.get(top.map(e => "n:" + e.p)) : new Map();
     const i = pid ? list.findIndex(e => e.p === pid) : -1;
-    return { board: b, top: top.map(e => ({ n: names.get("n:" + e.p) || "PLAYER", s: e.s, l: e.l || 0, me: e.p === pid })),
+    return { board: b, top: top.map(e => ({ n: names.get("n:" + e.p) || "PLAYER", s: e.s, l: e.l || 0, me: e.p === pid, id: e.p })),
       you: i >= 0 ? { rank: i + 1, s: list[i].s } : null, total: list.length };
   }
   async fetch(req) {
     const u = new URL(req.url);
     if (req.method === "GET") {
+      const prof = u.searchParams.get("prof") || "";                // HELLBALL ULTIMATE: a player's public stat sheet
+      if (prof) {
+        if (!LB_PID.test(prof)) return lbJSON({ error: "bad player" }, 400);
+        const got = await this.s.get(["p:" + prof, "n:" + prof]);
+        return lbJSON({ n: got.get("n:" + prof) || "PLAYER", p: got.get("p:" + prof) || null });
+      }
       const b = u.searchParams.get("b") || "", pid = u.searchParams.get("pid") || "";
       if (!LB_BOARD.test(b)) return lbJSON({ error: "bad board" }, 400);
       return lbJSON(await this.view(b, LB_PID.test(pid) ? pid : ""));
@@ -122,6 +128,19 @@ export class Board {
     const name = lbName(m.n);
     if (name) await this.s.put("n:" + m.pid, name);
     if (m.op === "name") return lbJSON({ ok: true, n: name });
+    if (m.op === "prof") {                                       // HELLBALL ULTIMATE: store the stat sheet (numbers and short strings only, capped)
+      const p = m.p && typeof m.p === "object" ? m.p : null;
+      if (!p) return lbJSON({ error: "bad profile" }, 400);
+      const clean = {};
+      for (const [k, v] of Object.entries(p).slice(0, 40)) {
+        if (!/^[a-z0-9]{1,12}$/i.test(k)) continue;
+        if (typeof v === "number" && isFinite(v)) clean[k] = Math.round(v * 100) / 100;
+        else if (typeof v === "string") clean[k] = v.slice(0, 24);
+        else if (Array.isArray(v)) clean[k] = v.slice(0, 16).map(x => Math.max(0, Math.min(1e6, Math.round(Number(x) || 0))));
+      }
+      await this.s.put("p:" + m.pid, clean);
+      return lbJSON({ ok: true });
+    }
     if (!LB_BOARD.test(m.b || "")) return lbJSON({ error: "bad board" }, 400);
     const list = (await this.s.get("b:" + m.b)) || [];
     let e = list.find(x => x.p === m.pid);
